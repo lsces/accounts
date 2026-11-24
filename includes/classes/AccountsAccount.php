@@ -233,6 +233,7 @@ class AccountsAccount extends LibertyContent {
 				'until'       => (string)( $data['until'] ?? '' ),
 				'via'         => (string)( $data['via'] ?? '' ),
 				'day'         => (int)( $data['day'] ?? 0 ),
+				'adjust'      => (string)( $data['adjust'] ?? '' ),
 				'note'        => (string)( $data['note'] ?? '' ),
 			];
 		}
@@ -251,6 +252,8 @@ class AccountsAccount extends LibertyContent {
 			'xkey_ext'   => (string)$pLine['description'],
 			'edit'       => json_encode( array_filter( [
 				'repeat' => $pLine['repeat'] ?? '', 'until' => $pLine['until'] ?? '', 'via' => $pLine['via'] ?? '', 'note' => $pLine['note'] ?? '',
+				// 'prev' / 'next': pay on the working day before / after when the date is a weekend or bank holiday
+				'adjust' => in_array( $pLine['adjust'] ?? '', [ 'prev', 'next' ], true ) ? $pLine['adjust'] : '',
 				// a monthly line remembers its day of the month, so the 31st survives a short month
 				'day' => ( $pLine['repeat'] ?? '' ) === 'monthly' ? (int)date( 'j', (int)$pLine['due'] ) : '',
 			], fn( $v ) => $v !== '' ) ?: new \stdClass() ),

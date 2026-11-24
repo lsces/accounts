@@ -105,3 +105,9 @@ anything overdue first.
 Between statements the only live figure is the bank's own app, so a balance can be noted by hand from the front page
 (`BALANCE` rows: the amount as at a date). The forecast starts from the newer of the last statement line and the latest
 noted balance, per account, and the front page shows the total paid out, total paid in and what is spare for the window.
+
+A planned line can carry a weekend / bank-holiday rule: `prev` pays it on the working day before (a pension that is
+always a Monday moves to the Friday, or earlier, when the Monday is a bank holiday), `next` on the working day after
+(a monthly payment that shuffles to Monday). The repeat keeps counting from the nominal date; only the day shown moves.
+England and Wales bank holidays are worked out from the rules (Easter, the Mondays in May and August, and the
+substitute days), so a one-off extra holiday is not known.

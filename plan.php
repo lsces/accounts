@@ -45,15 +45,15 @@ if( !empty( $_POST['remove'] ) && isset( $byId[(int)$_POST['remove']] ) ) {
 }
 
 $editId = (int)( $_REQUEST['xref_id'] ?? 0 );
-$form = [ 'xref_id' => 0, 'due' => date( 'Y-m-d' ), 'description' => '', 'direction' => 'out', 'amount' => '', 'repeat' => '', 'until' => '', 'via' => '', 'note' => '' ];
+$form = [ 'xref_id' => 0, 'due' => date( 'Y-m-d' ), 'description' => '', 'direction' => 'out', 'amount' => '', 'repeat' => '', 'until' => '', 'via' => '', 'note' => '', 'adjust' => '' ];
 if( $editId && isset( $byId[$editId] ) ) {
 	$p = $byId[$editId];
 	$form = [ 'xref_id' => $editId, 'due' => ( new \DateTime( '@'.$p['due'] ) )->setTimezone( $tz )->format( 'Y-m-d' ), 'description' => $p['description'],
-		'direction' => bccomp( $p['amount'], '0', 2 ) < 0 ? 'out' : 'in', 'amount' => ltrim( $p['amount'], '-' ), 'repeat' => $p['repeat'], 'until' => $p['until'], 'via' => $p['via'], 'note' => $p['note'] ];
+		'direction' => bccomp( $p['amount'], '0', 2 ) < 0 ? 'out' : 'in', 'amount' => ltrim( $p['amount'], '-' ), 'repeat' => $p['repeat'], 'until' => $p['until'], 'via' => $p['via'], 'note' => $p['note'], 'adjust' => $p['adjust'] ];
 }
 
 if( !empty( $_POST['save'] ) ) {
-	foreach( [ 'xref_id', 'due', 'description', 'direction', 'amount', 'repeat', 'until', 'via', 'note' ] as $k ) {
+	foreach( [ 'xref_id', 'due', 'description', 'direction', 'amount', 'repeat', 'until', 'via', 'note', 'adjust' ] as $k ) {
 		$form[$k] = trim( (string)( $_POST[$k] ?? '' ) );
 	}
 	$due = \DateTime::createFromFormat( '!Y-m-d', $form['due'], $tz );
@@ -79,7 +79,7 @@ if( !empty( $_POST['save'] ) ) {
 			'due'         => $due->getTimestamp(),
 			'amount'      => $form['direction'] === 'in' ? bcadd( ltrim( $amount, '-' ), '0', 2 ) : '-'.bcadd( ltrim( $amount, '-' ), '0', 2 ),
 			'description' => $form['description'], 'repeat' => $form['repeat'], 'until' => $form['until'],
-			'via'         => $form['via'] === 'paypal' ? 'paypal' : '', 'note' => $form['note'],
+			'via'         => $form['via'] === 'paypal' ? 'paypal' : '', 'note' => $form['note'], 'adjust' => $form['adjust'],
 		];
 		if( $gContent->storePlanned( $line ) ) {
 			header( 'Location: '.$self );

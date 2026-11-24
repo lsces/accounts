@@ -7,13 +7,13 @@
 		{formfeedback error=$errors}
 		{if $rows}
 			<table class="table table-condensed table-striped">
-				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}What{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th>{tr}Repeats{/tr}</th><th>{tr}Until{/tr}</th><th>{tr}Via{/tr}</th><th></th></tr></thead>
+				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}What{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th>{tr}Repeats{/tr}</th><th>{tr}Until{/tr}</th><th>{tr}Via{/tr}</th><th>{tr}Weekend / holiday{/tr}</th><th></th></tr></thead>
 				<tbody>
 					{foreach $rows as $r}
 						<tr>
 							<td>{$r.date|escape}</td><td>{$r.description|escape}</td>
 							<td class="text-right">{$r.out}</td><td class="text-right">{$r.in}</td>
-							<td>{$r.repeat|escape}</td><td>{$r.until|escape}</td><td>{$r.via|escape}</td>
+							<td>{$r.repeat|escape}</td><td>{$r.until|escape}</td><td>{$r.via|escape}</td><td>{if $r.adjust == 'prev'}{tr}day before{/tr}{elseif $r.adjust == 'next'}{tr}next day{/tr}{/if}</td>
 							<td class="text-right">
 								<a class="btn btn-default btn-xs" href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$gContent->mContentId}&amp;xref_id={$r.xref_id}">{tr}Edit{/tr}</a>
 								{form class="form-inline" style="display:inline"}
@@ -65,6 +65,17 @@
 			<div class="form-group">
 				{formlabel label="Until" for="until"}
 				{forminput}<input type="date" class="form-control" name="until" id="until" value="{$form.until|escape}" />{formhelp note="Optional last date for a repeating line."}{/forminput}
+			</div>
+			<div class="form-group">
+				{formlabel label="On a weekend or bank holiday" for="adjust"}
+				{forminput}
+					<select name="adjust" id="adjust" class="form-control">
+						<option value="">{tr}Leave on its date{/tr}</option>
+						<option value="prev"{if $form.adjust == 'prev'} selected="selected"{/if}>{tr}Paid the working day before{/tr}</option>
+						<option value="next"{if $form.adjust == 'next'} selected="selected"{/if}>{tr}Paid the next working day{/tr}</option>
+					</select>
+					{formhelp note="The repeat keeps counting from the nominal date; only the day shown moves."}
+				{/forminput}
 			</div>
 			<div class="form-group">
 				{formlabel label="Paid via" for="via"}
