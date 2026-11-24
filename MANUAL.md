@@ -10,19 +10,29 @@ payroll, no company accounts. Invoicing is out of scope for the first build.
 
 ## Content model
 
-One **ledger** per account per tax year is the base object (the same shape as the `health`
-package's day object). Every statement line is a `liberty_xref` row on its ledger, not a
-`liberty_content` row of its own, which keeps a year of statements to a handful of content objects.
+There is no content type of its own. An **account is a Contact business**: its sort code, account
+number and other details are that contact's own fields. Every statement line is a `liberty_xref`
+row of item `TXN`, hung straight off the account contact (`multiple=1`, many rows, editable).
 
-Each line carries: date, signed amount, bank type code, description, running balance where the
-source gives one, a category, and a flag for "transfer between own accounts" (left out of income
-and expenses).
+| Column | Holds |
+|---|---|
+| `content_id` | the account's contact |
+| `start_date` | the transaction date; the tax year is derived from it |
+| `xkey` | signed amount, negative = paid out |
+| `xkey_ext` | import key: the payment service's transaction id, or a hash of date, amount, type and description |
+| `xref` | the counterparty, as a contact's content_id; null until matched |
+| `data` (json) | bank type code, description, running balance, treatment, claim reference, source file, note; for a payment service also gross, fee, net and status |
 
-An account is anything with a running balance, so a bank account, a payment-service account or a
-rent account are all the same kind of thing; a ledger just rolls its balance on into the next year.
+An account is anything with a running balance, so a bank account, a payment-service account and a
+rent account are the same kind of thing; the balance simply rolls on across years.
 
-A main business account holds most eligible lines. A personal account contributes only the lines
-that are picked and flagged as business; the rest stay out of the totals.
+A main business account holds most eligible lines. A personal account contributes only lines that
+are entered because they are business items.
+
+**Treatment** says how a line counts: `income`, `expense`, `transfer` (between own accounts) or
+`not_claimed`. It is set per counterparty and carried onto that counterparty's other lines; a
+counterparty seen for the first time goes to a "needs a treatment" list. Reimbursements and the
+purchases behind them are reported gross (receipts as income, costs as expenses), on a cash basis.
 
 ## Tax year
 
@@ -41,17 +51,10 @@ The year runs from 5 April, matching the tax year, and is named for the year it 
 Every statement file (CSV and PDF) is kept, filed in a per-year folder in a fisheye gallery, so the
 ledger lines can always be traced back to the document they came from.
 
-## Categories and rules
-
-- A configurable category list, grouped to line up with the expense boxes of the return.
-- Rules of the form "description contains X → category". Imports apply them automatically.
-- Unmatched lines go to a "needs a category" queue; categorising one line can offer to make a rule
-  and apply it to the rest.
-
 ## Reports
 
-A tax year's income and expenses by category, printable. It also lists every uncategorised line,
-so nothing is dropped silently.
+A tax year's income and expenses, by counterparty and total, printable. It also lists every line
+still without a treatment, so nothing is dropped silently.
 
 ## Checking it
 

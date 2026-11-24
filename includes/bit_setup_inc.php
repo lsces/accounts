@@ -25,7 +25,7 @@ if( $gBitSystem->isPackageActive( 'accounts' ) ) {
 	];
 	$gBitSystem->registerAppMenu( $menuHash );
 
-	// content-type registration (the per-account, per-tax-year ledger — see MANUAL.md)
-	// and any service/hook registration belongs here once those classes exist —
-	// nothing to register yet.
+	// No content type of its own: accounts are Contact businesses and TXN is an xref item on
+	// them (see admin/schema_inc.php and MANUAL.md). Service/hook registration, if ever needed,
+	// belongs here — see stock/includes/bit_setup_inc.php for the pattern.
 }
