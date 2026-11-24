@@ -35,6 +35,7 @@ if( !in_array( $ty, $taxYears, true ) ) {
 }
 $lines = $ty === '' ? $all : array_values( array_filter( $all, fn( $l ) => $l['taxYear'] === $ty ) );
 
+$lines = array_reverse( $lines );   // newest first; each line keeps the balance it was computed with, oldest to newest
 $total = count( $lines );
 $pages = max( 1, (int)ceil( $total / STATEMENT_PAGE_SIZE ) );
 $page = min( $pages, max( 1, (int)( $_REQUEST['page'] ?? 1 ) ) );
@@ -69,6 +70,7 @@ $gBitSmarty->assign( 'planRows',  $planRows );
 $gBitSmarty->assign( 'gContent',   $gContent );
 $gBitSmarty->assign( 'contactLink', $gContent->getContactLink() );
 $gBitSmarty->assign( 'canUpdate',  $gBitUser->hasPermission( 'p_accounts_update' ) );
+$gBitSmarty->assign( 'canPlan',    !( $gContent instanceof AccountsPaypal ) && $gBitUser->hasPermission( 'p_accounts_update' ) );
 $gBitSmarty->assign( 'canImport',  $gContent::GUID === AccountsAccount::GUID && $gBitUser->hasPermission( 'p_accounts_create' ) );
 $gBitSmarty->assign( 'rows',       $rows );
 $gBitSmarty->assign( 'total',      $total );

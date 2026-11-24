@@ -2,7 +2,7 @@
 <div class="display accounts">
 	<div class="header">
 		<div class="floaticon">
-			{if $canUpdate && $canImport}<a title="{tr}Planned lines{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="x-office-calendar" iexplain="Planned lines"}</a>{/if}
+			{if $canPlan}<a title="{tr}Planned lines{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="x-office-calendar" iexplain="Planned lines"}</a>{/if}
 			{if $canImport}<a title="{tr}Import statements{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}import_statement.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="go-down" iexplain="Import statements"}</a>{/if}
 			{if $canUpdate}<a title="{tr}Edit{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}edit_account.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="accessories-text-editor" iexplain="Edit"}</a>{/if}
 		</div>
@@ -22,6 +22,21 @@
 			<noscript><input type="submit" class="btn btn-default" value="{tr}Show{/tr}" /></noscript>
 			<span class="help-block">{$total} {tr}lines{/tr}{if $opening !== null}; {tr}opening balance{/tr} {$opening}{/if}{if $closing !== ''}; {tr}closing balance{/tr} {$closing}{/if}</span>
 		</form>
+		{if $planRows}
+			<h2>{tr}Planned, next 12 weeks{/tr}{if $canPlan} <small><a href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$gContent->mContentId}">{tr}edit planned lines{/tr}</a></small>{/if}</h2>
+			<p class="help-block">{tr}From a balance now of{/tr} {$planNow}.</p>
+			<table class="table table-condensed">
+				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}What{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Projected balance{/tr}</th></tr></thead>
+				<tbody>
+					{foreach $planRows as $r}
+						<tr class="text-muted{if $r.overdue} warning{/if}"><td>{$r.date|escape}{if $r.overdue} <small>{tr}overdue{/tr}</small>{/if}</td><td>{$r.description|escape}</td><td class="text-right">{$r.out}</td><td class="text-right">{$r.in}</td><td class="text-right">{$r.balance}</td></tr>
+					{/foreach}
+				</tbody>
+			</table>
+		{elseif $canPlan}
+			<p><a href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$gContent->mContentId}">{tr}Add planned lines{/tr}</a></p>
+		{/if}
+		<h2>{tr}Statement, newest first{/tr}</h2>
 		{if $rows}
 			<table class="table table-condensed table-striped">
 				<thead>
@@ -45,18 +60,6 @@
 			{/if}
 		{else}
 			<p>{tr}No transactions yet.{/tr}</p>
-		{/if}
-		{if $planRows}
-			<h2>{tr}Planned, next 12 weeks{/tr}</h2>
-			<p class="help-block">{tr}From a balance now of{/tr} {$planNow}.</p>
-			<table class="table table-condensed">
-				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}What{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Projected balance{/tr}</th></tr></thead>
-				<tbody>
-					{foreach $planRows as $r}
-						<tr class="text-muted{if $r.overdue} warning{/if}"><td>{$r.date|escape}{if $r.overdue} <small>{tr}overdue{/tr}</small>{/if}</td><td>{$r.description|escape}</td><td class="text-right">{$r.out}</td><td class="text-right">{$r.in}</td><td class="text-right">{$r.balance}</td></tr>
-					{/foreach}
-				</tbody>
-			</table>
 		{/if}
 	</div>
 </div>
