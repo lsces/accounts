@@ -22,7 +22,7 @@ $gContent->load();
 if( !$gContent->isValid() ) {
 	$gBitSystem->fatalError( KernelTools::tra( 'No valid account specified.' ) );
 }
-if( $gContent instanceof AccountsPaypal ) {
+if( $gContent::GUID !== AccountsAccount::GUID ) {
 	$gBitSystem->fatalError( KernelTools::tra( 'Statement import here is for bank accounts.' ) );
 }
 

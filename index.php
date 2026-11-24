@@ -41,9 +41,9 @@ $accounts = $gBitDb->getAll(
 				JOIN `".BIT_DB_PREFIX."liberty_content` c ON ( c.`content_id` = l.`xref` )
 				WHERE l.`content_id` = lc.`content_id` AND l.`item` = 'CONTACT' AND l.`end_date` IS NULL ) AS contact_title
 		FROM `".BIT_DB_PREFIX."liberty_content` lc
-		WHERE lc.`content_type_guid` IN ( ?, ? )
+		WHERE lc.`content_type_guid` IN ( ?, ?, ? )
 		ORDER BY lc.`title`",
-	[ AccountsAccount::GUID, AccountsPaypal::GUID ]
+	[ AccountsAccount::GUID, AccountsPaypal::GUID, AccountsRent::GUID ]
 );
 
 // The next month: every planned line due in the window across the bank accounts, a repeating line once per occurrence,
@@ -57,7 +57,7 @@ $balances = [];
 $startBalance = '0';
 $hasPlan = false;
 foreach( $accounts as $a ) {
-	if( $a['content_type_guid'] !== AccountsAccount::GUID ) {
+	if( $a['content_type_guid'] === AccountsPaypal::GUID ) {
 		continue;
 	}
 	$acct = AccountsAccount::loadFor( (int)$a['content_id'] );

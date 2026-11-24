@@ -111,3 +111,11 @@ always a Monday moves to the Friday, or earlier, when the Monday is a bank holid
 (a monthly payment that shuffles to Monday). The repeat keeps counting from the nominal date; only the day shown moves.
 England and Wales bank holidays are worked out from the rules (Easter, the Mondays in May and August, and the
 substitute days), so a one-off extra holiday is not known.
+
+## Account kinds
+
+An account is one of three content types, chosen when it is created and not changeable: a bank account
+(`accountsaccount`: the bank's Type items, statement import), a PayPal account (`accountspaypal`: its own sales and
+payout items) and a rent account (`accountsrent`: the tenancy ledger items RENT, HB and PAY, not cash in hand). Each kind
+has only its own items, so none is offered another's. The rent account's payments are the other side of a bank
+account's direct debits to the landlord, and the two are kept as separate ledgers that run in parallel.

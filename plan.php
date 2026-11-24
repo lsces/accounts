@@ -24,7 +24,7 @@ if( !$gContent->isValid() ) {
 	$gBitSystem->fatalError( KernelTools::tra( 'No valid account specified.' ) );
 }
 if( $gContent instanceof AccountsPaypal ) {
-	$gBitSystem->fatalError( KernelTools::tra( 'Planned lines are kept on bank accounts.' ) );
+	$gBitSystem->fatalError( KernelTools::tra( 'Planned lines are kept on bank and rent accounts.' ) );
 }
 
 $tz = $gBitUser->getUserTimezone();

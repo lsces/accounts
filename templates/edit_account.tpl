@@ -13,9 +13,10 @@
 				{forminput}
 					<select class="form-control" name="kind" id="kind">
 						<option value="bank"{if $kind != 'paypal'} selected="selected"{/if}>{tr}Bank or other account{/tr}</option>
+						<option value="rent"{if $kind == 'rent'} selected="selected"{/if}>{tr}Rent account (tenancy ledger){/tr}</option>
 						<option value="paypal"{if $kind == 'paypal'} selected="selected"{/if}>{tr}PayPal{/tr}</option>
 					</select>
-					{formhelp note="PayPal accounts have their own tabs and tools; the kind cannot be changed afterwards."}
+					{formhelp note="PayPal and rent accounts have their own lines and tools; the kind cannot be changed afterwards."}
 				{/forminput}
 			</div>
 			{/if}

@@ -56,7 +56,7 @@
 					{foreach $accounts as $a}
 						<tr>
 							<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$a.content_id|escape}">{$a.title|escape}</a></td>
-							<td>{if $a.content_type_guid == 'accountspaypal'}{tr}PayPal{/tr}{else}{tr}Bank{/tr}{/if}</td>
+							<td>{if $a.content_type_guid == 'accountspaypal'}{tr}PayPal{/tr}{elseif $a.content_type_guid == 'accountsrent'}{tr}Rent{/tr}{else}{tr}Bank{/tr}{/if}</td>
 							<td>{$a.contact_title|escape}</td>
 							<td>{$a.txn_count|escape}</td>
 						</tr>

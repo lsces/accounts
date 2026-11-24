@@ -33,6 +33,7 @@ $gBitInstaller->registerPreferences( ACCOUNTS_PKG_NAME, [
 $gBitInstaller->registerContentObjects( ACCOUNTS_PKG_NAME, [
 	'AccountsAccount' => ACCOUNTS_PKG_CLASS_PATH.'AccountsAccount.php',
 	'AccountsPaypal'  => ACCOUNTS_PKG_CLASS_PATH.'AccountsPaypal.php',
+	'AccountsRent'    => ACCOUNTS_PKG_CLASS_PATH.'AccountsRent.php',
 ] );
 
 // ### Default User Permissions
@@ -66,7 +67,7 @@ $xrefItems = [];
 // The statement-line vocabulary (the bank's Type codes, a payment service's types) is site-specific and
 // is a local scheme, config/local/xref_schemes/accounts.php (liberty's Local Scheme page applies it),
 // not part of a new install. See MANUAL.md for the row layout those items share.
-foreach( [ 'accountsaccount', 'accountspaypal' ] as $guid ) {
+foreach( [ 'accountsaccount', 'accountspaypal', 'accountsrent' ] as $guid ) {
 	$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('general','$guid','General',1,3,'','')";
 
 	// CONTACT - the contact record for the bank or service holding the account. xref = that
@@ -75,18 +76,26 @@ foreach( [ 'accountsaccount', 'accountspaypal' ] as $guid ) {
 }
 
 // OPENING - the balance before the account's first recorded line, so a statement view can show a running
-// balance. xkey = the amount. Bank accounts only. One per account.
-$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('OPENING','accountsaccount','general','Opening balance',0,1,3,'','key-json-text','[\"amount\",\"note\"]')";
+// balance. xkey = the amount. Bank and rent accounts. One per account.
+foreach( [ 'accountsaccount', 'accountsrent' ] as $guid ) {
+	$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('OPENING','$guid','general','Opening balance',0,1,3,'','key-json-text','[\"amount\",\"note\"]')";
+}
 
 // PLAN - an expected future line on the account (the forecast): start_date = next due date, xkey = signed amount
 // (negative = paid out), xkey_ext = what it is, data json = repeat (weekly|2weekly|4weekly|monthly), until
 // (Y-m-d), via (paypal), note. A repeating line rolls to its next date when it happens; a one-off is archived.
-// Never counted by reports, only shown after the last real line. Bank accounts only.
-$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('planned','accountsaccount','Planned',3,3,'','')";
-$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('PLAN','accountsaccount','planned','Planned line',1,1,3,'','key-json-text','[\"amount\",\"description\",\"repeat\",\"until\",\"via\",\"note\"]')";
+// Never counted by reports, only shown after the last real line. Bank and rent accounts.
+foreach( [ 'accountsaccount', 'accountsrent' ] as $guid ) {
+	$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('planned','$guid','Planned',3,3,'','')";
+}
+foreach( [ 'accountsaccount', 'accountsrent' ] as $guid ) {
+	$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('PLAN','$guid','planned','Planned line',1,1,3,'','key-json-text','[\"amount\",\"description\",\"repeat\",\"until\",\"via\",\"note\"]')";
+}
 
 // BALANCE - a balance noted by hand, from the bank's app, as at a date (start_date); xkey = the amount. The forecast
-// starts from the newer of this and the last statement line, since statements only arrive monthly. Bank accounts only.
-$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('BALANCE','accountsaccount','planned','Balance noted',1,2,3,'','key-json-text','[\"amount\",\"note\"]')";
+// starts from the newer of this and the last statement line, since statements only arrive monthly. Bank and rent accounts.
+foreach( [ 'accountsaccount', 'accountsrent' ] as $guid ) {
+	$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('BALANCE','$guid','planned','Balance noted',1,2,3,'','key-json-text','[\"amount\",\"note\"]')";
+}
 
 $gBitInstaller->registerSchemaDefault( ACCOUNTS_PKG_NAME, array_merge( $xrefTypes, $xrefItems ) );

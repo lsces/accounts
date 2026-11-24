@@ -19,8 +19,8 @@ $gBitSystem->verifyPackage( 'accounts' );
 
 // An existing account loads as its own kind; a new one is a bank-type account unless kind=paypal is chosen.
 $gContent = AccountsAccount::loadFor( !empty( $_REQUEST['content_id'] ) ? (int)$_REQUEST['content_id'] : null );
-if( !$gContent->mContentId && ( $_REQUEST['kind'] ?? '' ) === 'paypal' ) {
-	$gContent = new AccountsPaypal();
+if( !$gContent->mContentId ) {
+	$gContent = match( $_REQUEST['kind'] ?? '' ) { 'paypal' => new AccountsPaypal(), 'rent' => new AccountsRent(), default => $gContent };
 }
 if( $gContent->mContentId ) {
 	$gContent->load();
@@ -38,7 +38,7 @@ $title = trim( $_REQUEST['title'] ?? ( $gContent->mInfo['title'] ?? '' ) );
 $contactId = isset( $_REQUEST['contact_id'] ) ? (int)$_REQUEST['contact_id'] : (int)( $link['xref'] ?? 0 );
 $contactTitle = trim( $_REQUEST['contact_title'] ?? '' );
 
-$isBank = !( $gContent instanceof AccountsPaypal ) && ( $gContent->mContentId || ( $_REQUEST['kind'] ?? '' ) !== 'paypal' );
+$isBank = !( $gContent instanceof AccountsPaypal );   // has a balance and a forecast: bank and rent accounts
 $opening = $gContent->mContentId ? $gContent->getOpening() : null;
 $openingText = trim( (string)( $_REQUEST['opening'] ?? ( $opening['amount'] ?? '' ) ) );
 
@@ -95,13 +95,13 @@ if( $gContent->mContentId ) {
 	$gBitSmarty->assign( 'gXrefInfo', $gContent->mXrefInfo );
 }
 $gBitSmarty->assign( 'gContent',     $gContent );
-$gBitSmarty->assign( 'kind',         $gContent instanceof AccountsPaypal ? 'paypal' : 'bank' );
+$gBitSmarty->assign( 'kind',         $gContent instanceof AccountsPaypal ? 'paypal' : ( $gContent instanceof AccountsRent ? 'rent' : 'bank' ) );
 $gBitSmarty->assign( 'accountTitle', $title );
 $gBitSmarty->assign( 'contactId',    $contactId ?: '' );
 $gBitSmarty->assign( 'contactTitle', $contactTitle );
 $gBitSmarty->assign( 'errors',       $errors );
 $gBitSmarty->assign( 'isBank',       $isBank );
-$gBitSmarty->assign( 'isCash',       !$gContent->mContentId || $gContent->isCash() );
+$gBitSmarty->assign( 'isCash',       $gContent->mContentId ? $gContent->isCash() : !( $gContent instanceof AccountsRent ) );
 $gBitSmarty->assign( 'openingText',  $openingText );
 
 $gBitSystem->display( 'bitpackage:accounts/edit_account.tpl', $gContent->mContentId ? KernelTools::tra( 'Edit account' ) : KernelTools::tra( 'New account' ), [ 'display_mode' => 'edit' ] );

@@ -18,7 +18,7 @@ defined( 'ACCOUNTSACCOUNT_CONTENT_TYPE_GUID' ) || define( 'ACCOUNTSACCOUNT_CONTE
 #[\AllowDynamicProperties]
 class AccountsAccount extends LibertyContent {
 
-	/** Content type of this class; a subclass (AccountsPaypal) overrides these three. */
+	/** Content type of this class; a subclass (AccountsPaypal, AccountsRent) overrides these three. */
 	const GUID        = 'accountsaccount';
 	const NAME        = 'Account';
 	const NAME_PLURAL = 'Accounts';
@@ -31,7 +31,8 @@ class AccountsAccount extends LibertyContent {
 	public static function loadFor( $pContentId ): AccountsAccount {
 		global $gBitDb;
 		$guid = $pContentId ? $gBitDb->getOne( "SELECT `content_type_guid` FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ?", [ (int)$pContentId ] ) : null;
-		return $guid === AccountsPaypal::GUID ? new AccountsPaypal( null, (int)$pContentId ) : new AccountsAccount( null, (int)$pContentId );
+		$class = [ AccountsPaypal::GUID => AccountsPaypal::class, AccountsRent::GUID => AccountsRent::class ][$guid] ?? AccountsAccount::class;
+		return new $class( null, (int)$pContentId );
 	}
 
 	/**
@@ -268,7 +269,7 @@ class AccountsAccount extends LibertyContent {
 
 	/** Whether the account's balance is cash in hand (counted in the front-page forecast). A tenancy ledger, say, is not. Default yes. */
 	public function isCash(): bool {
-		return $this->getPreference( 'accounts_cash', 'y' ) !== 'n';
+		return $this->getPreference( 'accounts_cash', $this instanceof AccountsRent ? 'n' : 'y' ) !== 'n';
 	}
 
 	public function setCash( bool $pCash ): void {
