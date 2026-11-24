@@ -12,6 +12,14 @@
 
 global $gBitInstaller;
 
+// This file is included on every installer page view, and the installer's cached $gBitSystem brings
+// $mPackages (including each package's seed list) back from the object cache each time. Without a
+// reset, registerSchemaDefault() appends another copy of every seed statement per page view, and the
+// install run then executes them two or three times over and dies on the first unique key
+// (found 2026-11-24: 9 seeds became 27 across three page views). Starting the list afresh makes
+// including this file any number of times harmless.
+unset( $gBitInstaller->mPackages[ACCOUNTS_PKG_NAME]['defaults'] );
+
 $gBitInstaller->registerPackageInfo( ACCOUNTS_PKG_NAME, [
 	'description' => 'Accounts is a lightweight single-entry ledger for a sole trader: it imports bank and payment-service statements, hangs each line off an account contact, and reports a tax year\'s income and expenses.',
 	'license'     => '<a href="http://www.gnu.org/licenses/licenses.html#LGPL">LGPL</a>',
