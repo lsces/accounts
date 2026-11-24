@@ -13,6 +13,7 @@ define( 'ACCOUNTS_PKG_PATH', BIT_ROOT_PATH . basename( $pRegisterHash['package_p
 define( 'ACCOUNTS_PKG_INCLUDE_PATH', BIT_ROOT_PATH . basename( $pRegisterHash['package_path'] ) . '/includes/');
 define( 'ACCOUNTS_PKG_CLASS_PATH', BIT_ROOT_PATH . basename( $pRegisterHash['package_path'] ) . '/includes/classes/');
 define( 'ACCOUNTS_PKG_ADMIN_PATH', BIT_ROOT_PATH . basename( $pRegisterHash['package_path'] ) . '/admin/');
+defined( 'ACCOUNTSACCOUNT_CONTENT_TYPE_GUID' ) || define( 'ACCOUNTSACCOUNT_CONTENT_TYPE_GUID', 'accountsaccount' );
 
 $gBitSystem->registerPackage( $pRegisterHash );
 
