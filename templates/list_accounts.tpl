@@ -19,9 +19,32 @@
 						</tr>
 					{/foreach}
 				</tbody>
+				<tfoot>
+					<tr><th colspan="3">{tr}Total{/tr}</th><th class="text-right">{$totalOut}</th><th class="text-right">{$totalIn}</th><th></th></tr>
+					<tr><th colspan="5">{tr}Spare (paid in less paid out){/tr}</th><th class="text-right">{$spare}</th></tr>
+				</tfoot>
 			</table>
 		{else}
 			<p>{tr}Nothing planned in this period. Add planned lines from an account's Planned page.{/tr}</p>
+		{/if}
+		{if $balances}
+			<h2>{tr}Balances{/tr}</h2>
+			{form}
+				<table class="table table-condensed">
+					<thead><tr><th>{tr}Account{/tr}</th><th class="text-right">{tr}Balance{/tr}</th><th>{tr}As at{/tr}</th>{if $canNote}<th>{tr}Note a new balance{/tr}</th>{/if}</tr></thead>
+					<tbody>
+						{foreach $balances as $b}
+							<tr>
+								<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$b.account_id}">{$b.title|escape}</a></td>
+								<td class="text-right">{$b.amount}</td>
+								<td>{if $b.source == 'statement'}{$b.as_at} <small>({tr}statement{/tr})</small>{elseif $b.source == 'noted'}{$b.as_at} <small>({tr}noted{/tr})</small>{else}<small>{tr}opening{/tr}</small>{/if}</td>
+								{if $canNote}<td><input type="text" class="form-control" name="balance[{$b.account_id}]" value="" style="width:9em" /></td>{/if}
+							</tr>
+						{/foreach}
+					</tbody>
+				</table>
+				{if $canNote}<p><input type="submit" class="btn btn-default" name="note_balance" value="{tr}Save balances{/tr}" /></p>{/if}
+			{/form}
 		{/if}
 		<h2>{tr}Accounts{/tr}</h2>
 		{if $accounts}

@@ -263,6 +263,38 @@ class AccountsAccount extends LibertyContent {
 		return $this->storeRow( $hash );
 	}
 
+	/** Note the balance as it stands now (or at $pAt, an epoch), e.g. read off the bank's app. */
+	public function storeBalanceNote( string $pAmount, ?int $pAt = null ): bool {
+		return $this->storeRow( [
+			'content_id' => (int)$this->mContentId, 'item' => 'BALANCE', 'start_date' => $pAt ?? time(),
+			'xkey' => bcadd( $pAmount, '0', 2 ),
+			'xorder' => 1 + (int)$this->mDb->getOne( "SELECT MAX(`xorder`) FROM `".BIT_DB_PREFIX."liberty_xref` WHERE `content_id` = ?", [ (int)$this->mContentId ] ),
+		] );
+	}
+
+	/**
+	 * The best current balance: the latest of the last statement line (its date) and the latest balance noted by hand.
+	 *
+	 * @return array{amount:string,as_at:?int,source:string}  source is 'statement', 'noted' or 'opening'
+	 */
+	public function getCurrentBalance( \DateTimeZone $pTz ): array {
+		$lines = $this->getStatementLines( $pTz );
+		$last = $lines ? end( $lines ) : null;
+		$opening = $this->getOpening();
+		$cur = $last
+			? [ 'amount' => $last['balance'], 'as_at' => ( new \DateTime( $last['date'], $pTz ) )->getTimestamp(), 'source' => 'statement' ]
+			: [ 'amount' => $opening ? bcadd( (string)$opening['amount'], '0', 2 ) : '0.00', 'as_at' => null, 'source' => 'opening' ];
+		$note = $this->mDb->getRow(
+			"SELECT FIRST 1 `start_date`, `xkey` FROM `".BIT_DB_PREFIX."liberty_xref`
+				WHERE `content_id` = ? AND `item` = 'BALANCE' AND `end_date` IS NULL ORDER BY `start_date` DESC, `xref_id` DESC",
+			[ (int)$this->mContentId ]
+		);
+		if( $note && ( $cur['as_at'] === null || (int)$note['start_date'] >= $cur['as_at'] ) ) {
+			$cur = [ 'amount' => bcadd( (string)$note['xkey'], '0', 2 ), 'as_at' => (int)$note['start_date'], 'source' => 'noted' ];
+		}
+		return $cur;
+	}
+
 	/** Take a planned line off the forecast, keeping the row (end-dated), not deleting it. */
 	public function archivePlanned( int $pXrefId ): bool {
 		return $this->storeRow( [ 'xref_id' => $pXrefId, 'content_id' => (int)$this->mContentId, 'item' => 'PLAN', 'end_date' => time() ] );
@@ -302,7 +334,7 @@ class AccountsAccount extends LibertyContent {
 		$balance = $opening ? (string)$opening['amount'] : '0';
 		$rs = $this->mDb->query(
 			"SELECT `xref_id`, `item`, `start_date`, `xkey`, `data` FROM `".BIT_DB_PREFIX."liberty_xref`
-				WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING','PLAN') AND `end_date` IS NULL
+				WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE') AND `end_date` IS NULL
 				ORDER BY `start_date`, `xorder`, `xref_id`",
 			[ (int)$this->mContentId ]
 		);

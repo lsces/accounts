@@ -101,3 +101,7 @@ Marking a repeating line done moves it to its next date; a one-off is archived. 
 deleted. Planned lines are never counted as income or expense. The front page lists the next 28 days across the bank
 accounts, a repeating line once per occurrence, with the combined balance carried on from the statements, and shows
 anything overdue first.
+
+Between statements the only live figure is the bank's own app, so a balance can be noted by hand from the front page
+(`BALANCE` rows: the amount as at a date). The forecast starts from the newer of the last statement line and the latest
+noted balance, per account, and the front page shows the total paid out, total paid in and what is spare for the window.

@@ -86,7 +86,7 @@ $newCount = count( array_filter( $lines, fn( $l ) => $l['new'] ) );
 $result = null;
 if( !empty( $_POST['do_import'] ) && $lines ) {
 	// A first import into an account with no opening balance sets one, worked back from the first printed balance.
-	$hasLines = (bool)$gContent->mDb->getOne( "SELECT COUNT(*) FROM `".BIT_DB_PREFIX."liberty_xref` WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING','PLAN')", [ (int)$gContent->mContentId ] );
+	$hasLines = (bool)$gContent->mDb->getOne( "SELECT COUNT(*) FROM `".BIT_DB_PREFIX."liberty_xref` WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE')", [ (int)$gContent->mContentId ] );
 	$openingSet = null;
 	if( !$hasLines && !$gContent->getOpening() && ( $derived = AccountsImport::deriveOpening( $lines ) ) !== null && $gContent->storeOpening( $derived ) ) {
 		$openingSet = $derived;

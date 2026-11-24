@@ -17,10 +17,26 @@ global $gBitSystem, $gBitSmarty, $gBitUser, $gBitDb;
 $gBitSystem->verifyPackage( 'accounts' );
 $gBitSystem->verifyPermission( 'p_accounts_view' );
 
+// Balances noted by hand (the bank's app is the only live source between statements).
+if( !empty( $_POST['note_balance'] ) && $gBitUser->hasPermission( 'p_accounts_update' ) ) {
+	foreach( (array)( $_POST['balance'] ?? [] ) as $id => $val ) {
+		$val = str_replace( [ ',', '£', ' ' ], '', trim( (string)$val ) );
+		if( $val !== '' && is_numeric( $val ) ) {
+			$noted = AccountsAccount::loadFor( (int)$id );
+			$noted->load();
+			if( $noted->isValid() && !( $noted instanceof AccountsPaypal ) ) {
+				$noted->storeBalanceNote( $val );
+			}
+		}
+	}
+	header( 'Location: '.ACCOUNTS_PKG_URL.'index.php' );
+	die;
+}
+
 $accounts = $gBitDb->getAll(
 	"SELECT lc.`content_id`, lc.`title`, lc.`content_type_guid`,
 			( SELECT COUNT(*) FROM `".BIT_DB_PREFIX."liberty_xref` x
-				WHERE x.`content_id` = lc.`content_id` AND x.`item` NOT IN ('CONTACT','OPENING','PLAN') AND x.`end_date` IS NULL ) AS txn_count,
+				WHERE x.`content_id` = lc.`content_id` AND x.`item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE') AND x.`end_date` IS NULL ) AS txn_count,
 			( SELECT FIRST 1 c.`title` FROM `".BIT_DB_PREFIX."liberty_xref` l
 				JOIN `".BIT_DB_PREFIX."liberty_content` c ON ( c.`content_id` = l.`xref` )
 				WHERE l.`content_id` = lc.`content_id` AND l.`item` = 'CONTACT' AND l.`end_date` IS NULL ) AS contact_title
@@ -37,6 +53,7 @@ $days = max( 7, min( 120, (int)( $_REQUEST['days'] ?? 28 ) ) );
 $from = ( new \DateTime( 'today', $tz ) )->getTimestamp();
 $to   = ( new \DateTime( 'today', $tz ) )->modify( '+'.$days.' days' )->getTimestamp();   // exclusive: 28 days is four weeks
 $forecast = [];
+$balances = [];
 $startBalance = '0';
 $hasPlan = false;
 foreach( $accounts as $a ) {
@@ -45,9 +62,10 @@ foreach( $accounts as $a ) {
 	}
 	$acct = AccountsAccount::loadFor( (int)$a['content_id'] );
 	$acct->load();
-	$lines = $acct->getStatementLines( $tz );
-	$opening = $acct->getOpening();
-	$startBalance = bcadd( $startBalance, $lines ? end( $lines )['balance'] : ( $opening ? (string)$opening['amount'] : '0' ), 2 );
+	$cur = $acct->getCurrentBalance( $tz );
+	$startBalance = bcadd( $startBalance, $cur['amount'], 2 );
+	$balances[] = [ 'account_id' => (int)$a['content_id'], 'title' => $a['title'], 'amount' => number_format( (float)$cur['amount'], 2 ),
+		'as_at' => $cur['as_at'] ? ( new \DateTime( '@'.$cur['as_at'] ) )->setTimezone( $tz )->format( 'j M' ) : '', 'source' => $cur['source'] ];
 	foreach( AccountsPlan::occurrences( $acct->getPlanned(), $from, $to, $tz ) as $o ) {
 		$hasPlan = true;
 		$forecast[] = $o + [ 'account' => $a['title'], 'account_id' => (int)$a['content_id'] ];
@@ -63,6 +81,19 @@ foreach( $forecast as &$f ) {
 	$f['balance'] = number_format( (float)$running, 2 );
 }
 unset( $f );
+$totalOut = $totalIn = '0';
+foreach( $forecast as $f ) {
+	if( bccomp( $f['amount'], '0', 2 ) < 0 ) {
+		$totalOut = bcadd( $totalOut, ltrim( $f['amount'], '-' ), 2 );
+	} else {
+		$totalIn = bcadd( $totalIn, $f['amount'], 2 );
+	}
+}
+$gBitSmarty->assign( 'totalOut', number_format( (float)$totalOut, 2 ) );
+$gBitSmarty->assign( 'totalIn',  number_format( (float)$totalIn, 2 ) );
+$gBitSmarty->assign( 'spare',    number_format( (float)bcsub( $totalIn, $totalOut, 2 ), 2 ) );
+$gBitSmarty->assign( 'balances', $balances );
+$gBitSmarty->assign( 'canNote',  $gBitUser->hasPermission( 'p_accounts_update' ) );
 
 $gBitSmarty->assign( 'forecast',     $forecast );
 $gBitSmarty->assign( 'hasPlan',      $hasPlan );

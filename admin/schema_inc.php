@@ -85,4 +85,8 @@ $xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,
 $xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('planned','accountsaccount','Planned',3,3,'','')";
 $xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('PLAN','accountsaccount','planned','Planned line',1,1,3,'','key-json-text','[\"amount\",\"description\",\"repeat\",\"until\",\"via\",\"note\"]')";
 
+// BALANCE - a balance noted by hand, from the bank's app, as at a date (start_date); xkey = the amount. The forecast
+// starts from the newer of this and the last statement line, since statements only arrive monthly. Bank accounts only.
+$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('BALANCE','accountsaccount','planned','Balance noted',1,2,3,'','key-json-text','[\"amount\",\"note\"]')";
+
 $gBitInstaller->registerSchemaDefault( ACCOUNTS_PKG_NAME, array_merge( $xrefTypes, $xrefItems ) );
