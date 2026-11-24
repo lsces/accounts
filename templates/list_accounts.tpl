@@ -8,20 +8,21 @@
 		{if $forecast}
 			<p class="help-block">{tr}Planned lines across the bank accounts. The balance starts from where the statements leave the accounts together:{/tr} {$startBalance}</p>
 			<table class="table table-condensed table-striped">
-				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}Account{/tr}</th><th>{tr}What{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Balance{/tr}</th></tr></thead>
+				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}Account{/tr}</th><th>{tr}What{/tr}</th><th>{tr}Repeat{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Balance{/tr}</th></tr></thead>
 				<tbody>
 					{foreach $forecast as $f}
 						<tr{if $f.overdue} class="warning"{/if}>
 							<td>{$f.date|escape}{if $f.overdue} <small>{tr}overdue{/tr}</small>{/if}</td>
-							<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$f.account_id}">{$f.account|escape}</a></td>
+							<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$f.account_id}">{$f.account|escape}</a></td>
 							<td>{$f.description|escape}{if $f.via == 'paypal'} <small>(PayPal)</small>{/if}</td>
+							<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$f.account_id}&amp;xref_id={$f.xref_id}" title="{tr}Edit this planned line{/tr}">{if $f.repeat}{$f.repeat|escape}{else}{tr}once{/tr}{/if}</a></td>
 							<td class="text-right">{$f.out}</td><td class="text-right">{$f.in}</td><td class="text-right">{$f.balance}</td>
 						</tr>
 					{/foreach}
 				</tbody>
 				<tfoot>
-					<tr><th colspan="3">{tr}Total{/tr}</th><th class="text-right">{$totalOut}</th><th class="text-right">{$totalIn}</th><th></th></tr>
-					<tr><th colspan="5">{tr}Spare (paid in less paid out){/tr}</th><th class="text-right">{$spare}</th></tr>
+					<tr><th colspan="4">{tr}Total{/tr}</th><th class="text-right">{$totalOut}</th><th class="text-right">{$totalIn}</th><th></th></tr>
+					<tr><th colspan="6">{tr}Spare (paid in less paid out){/tr}</th><th class="text-right">{$spare}</th></tr>
 				</tfoot>
 			</table>
 		{else}
