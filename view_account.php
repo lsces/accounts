@@ -1,7 +1,8 @@
 <?php
 /**
- * One account: its linked contact and its transactions, using liberty's generic xref-group
- * display (one tab per group) — the same framework health/view_day.php uses.
+ * One account. The default display is its statement: every line in date order with money out, money in
+ * and a running balance, paginated, optionally for one tax year (the running balance is still the true
+ * one). The xref grid, read only, is on the edit page.
  *
  * @package accounts
  */
@@ -22,12 +23,43 @@ $gContent->load();
 if( !$gContent->isValid() ) {
 	$gBitSystem->fatalError( KernelTools::tra( 'No valid account specified.' ) );
 }
-$gContent->loadXrefInfo();
 
-$gBitSmarty->assign( 'gContent',  $gContent );
-$gBitSmarty->assign( 'gXrefInfo', $gContent->mXrefInfo );
+const STATEMENT_PAGE_SIZE = 50;
+
+$all = $gContent->getStatementLines( $gBitUser->getUserTimezone() );
+$taxYears = array_values( array_unique( array_column( $all, 'taxYear' ) ) );
+rsort( $taxYears );
+$ty = (string)( $_REQUEST['ty'] ?? '' );
+if( !in_array( $ty, $taxYears, true ) ) {
+	$ty = '';
+}
+$lines = $ty === '' ? $all : array_values( array_filter( $all, fn( $l ) => $l['taxYear'] === $ty ) );
+
+$total = count( $lines );
+$pages = max( 1, (int)ceil( $total / STATEMENT_PAGE_SIZE ) );
+$page = min( $pages, max( 1, (int)( $_REQUEST['page'] ?? 1 ) ) );
+$rows = array_slice( $lines, ( $page - 1 ) * STATEMENT_PAGE_SIZE, STATEMENT_PAGE_SIZE );
+
+$opening = $gContent->getOpening();
+$fmt = fn( $v ) => $v === '' ? '' : number_format( (float)$v, 2 );
+foreach( $rows as &$r ) {
+	$r['out'] = $fmt( $r['out'] );
+	$r['in'] = $fmt( $r['in'] );
+	$r['balance'] = $fmt( $r['balance'] );
+}
+unset( $r );
+
+$gBitSmarty->assign( 'gContent',   $gContent );
 $gBitSmarty->assign( 'contactLink', $gContent->getContactLink() );
-$gBitSmarty->assign( 'canImport', !( $gContent instanceof AccountsPaypal ) && $gBitUser->hasPermission( 'p_accounts_create' ) );
-$gBitSmarty->assign( 'canUpdate', $gBitUser->hasPermission( 'p_accounts_update' ) );
+$gBitSmarty->assign( 'canUpdate',  $gBitUser->hasPermission( 'p_accounts_update' ) );
+$gBitSmarty->assign( 'canImport',  !( $gContent instanceof AccountsPaypal ) && $gBitUser->hasPermission( 'p_accounts_create' ) );
+$gBitSmarty->assign( 'rows',       $rows );
+$gBitSmarty->assign( 'total',      $total );
+$gBitSmarty->assign( 'page',       $page );
+$gBitSmarty->assign( 'pages',      $pages );
+$gBitSmarty->assign( 'taxYears',   $taxYears );
+$gBitSmarty->assign( 'ty',         $ty );
+$gBitSmarty->assign( 'opening',    $opening ? number_format( (float)$opening['amount'], 2 ) : null );
+$gBitSmarty->assign( 'closing',    $all ? $fmt( end( $all )['balance'] ) : '' );
 
 $gBitSystem->display( 'bitpackage:accounts/view_account.tpl', KernelTools::tra( 'Account' ).': '.$gContent->getTitle() );

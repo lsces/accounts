@@ -87,6 +87,10 @@ if( $contactId && $contactTitle === '' ) {
 	$contactTitle = (string)$gContent->mDb->getOne( "SELECT `title` FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ?", [ $contactId ] );
 }
 
+if( $gContent->mContentId ) {
+	$gContent->loadXrefInfo();
+	$gBitSmarty->assign( 'gXrefInfo', $gContent->mXrefInfo );
+}
 $gBitSmarty->assign( 'gContent',     $gContent );
 $gBitSmarty->assign( 'kind',         $gContent instanceof AccountsPaypal ? 'paypal' : 'bank' );
 $gBitSmarty->assign( 'accountTitle', $title );

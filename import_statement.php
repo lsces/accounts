@@ -65,10 +65,27 @@ if( !empty( $_POST['do_import'] ) && $lines ) {
 		$openingSet = $derived;
 	}
 	$result = AccountsImport::store( $gContent, $lines );
+	// The raw files are kept, as health keeps its uploads: archive/<account content_id>/<name>.
+	$archiveDir = ACCOUNTS_IMPORT_PATH.'archive/'.(int)$gContent->mContentId.'/';
+	if( !is_dir( $archiveDir ) ) {
+		mkdir( $archiveDir, 0777, true );
+	}
+	foreach( $files as $name => $text ) {
+		$safe = preg_replace( '/[^A-Za-z0-9 ()._-]/', '_', basename( (string)$name ) );
+		if( $safe !== '' && $safe[0] !== '.' ) {
+			file_put_contents( $archiveDir.$safe, $text );
+		}
+	}
 	$result['opening'] = $openingSet;
 	$errors = array_merge( $errors, $result['errors'] );
 	$lines = $files = [];
 }
+
+$archived = [];
+foreach( glob( ACCOUNTS_IMPORT_PATH.'archive/'.(int)$gContent->mContentId.'/*.csv' ) ?: [] as $path ) {
+	$archived[] = [ 'name' => basename( $path ), 'size' => filesize( $path ), 'mtime' => filemtime( $path ) ];
+}
+usort( $archived, fn( $a, $b ) => strcmp( $b['name'], $a['name'] ) );
 
 $otherTypes = array_unique( array_map( fn( $l ) => $l['type'], array_filter( $lines, fn( $l ) => $l['item'] === 'BANK_OTHER' ) ) );
 
@@ -78,6 +95,7 @@ $gBitSmarty->assign( 'lines',      $lines );
 $gBitSmarty->assign( 'newCount',   $newCount );
 $gBitSmarty->assign( 'problems',   $problems );
 $gBitSmarty->assign( 'otherTypes', $otherTypes );
+$gBitSmarty->assign( 'archived',   $archived );
 $gBitSmarty->assign( 'result',     $result );
 $gBitSmarty->assign( 'errors',     $errors );
 

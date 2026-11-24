@@ -6,7 +6,7 @@
 	<div class="body">
 		{formfeedback error=$errors}
 		{if $result}
-			<p class="alert alert-success">{tr}Added{/tr} {$result.added} {tr}transactions{/tr}{if $result.failed}, {$result.failed} {tr}failed{/tr}{/if}.{if $result.opening !== null} {tr}Opening balance set to{/tr} {$result.opening|escape}.{/if} <a href="{$smarty.const.ACCOUNTS_PKG_URL}statement.php?content_id={$gContent->mContentId}">{tr}View the statement{/tr}</a></p>
+			<p class="alert alert-success">{tr}Added{/tr} {$result.added} {tr}transactions{/tr}{if $result.failed}, {$result.failed} {tr}failed{/tr}{/if}.{if $result.opening !== null} {tr}Opening balance set to{/tr} {$result.opening|escape}.{/if} <a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$gContent->mContentId}">{tr}View the statement{/tr}</a></p>
 		{/if}
 
 		{if $lines}
@@ -61,6 +61,15 @@
 					<input type="submit" class="btn btn-primary" name="preview" value="{tr}Preview{/tr}" />
 				</div>
 			{/form}
+		{/if}
+		{if $archived}
+			<h3>{tr}Imported statement files{/tr}</h3>
+			<table class="table table-condensed">
+				<thead><tr><th>{tr}File{/tr}</th><th>{tr}Imported{/tr}</th><th>{tr}Size{/tr}</th></tr></thead>
+				<tbody>
+					{foreach $archived as $f}<tr><td>{$f.name|escape}</td><td>{$f.mtime|bit_short_datetime}</td><td>{$f.size|@number_format} {tr}bytes{/tr}</td></tr>{/foreach}
+				</tbody>
+			</table>
 		{/if}
 	</div>
 </div>

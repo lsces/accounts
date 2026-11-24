@@ -51,6 +51,15 @@
 				<input type="submit" class="btn btn-primary" name="save" value="{tr}Save{/tr}" />
 			</div>
 		{/form}
+		{if $gContent->mContentId && $gXrefInfo && $gXrefInfo->mGroups}
+			<h2>{tr}Recorded lines{/tr}</h2>
+			<p class="help-block">{tr}Read only. Lines come from the statement import.{/tr}</p>
+			{jstabs}
+				{foreach $gXrefInfo->mGroups as $group}
+					{include file=$gContent->getXrefListTemplate($group->mTemplate) xrefGroup=$group allow_edit=false allow_add=false}
+				{/foreach}
+			{/jstabs}
+		{/if}
 	</div>
 </div>
 {/strip}

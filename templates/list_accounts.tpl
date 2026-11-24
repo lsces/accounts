@@ -12,7 +12,7 @@
 				<tbody>
 					{foreach $accounts as $a}
 						<tr>
-							<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$a.content_id|escape}">{$a.title|escape}</a> <small><a href="{$smarty.const.ACCOUNTS_PKG_URL}statement.php?content_id={$a.content_id|escape}">{tr}statement{/tr}</a></small></td>
+							<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$a.content_id|escape}">{$a.title|escape}</a></td>
 							<td>{if $a.content_type_guid == 'accountspaypal'}{tr}PayPal{/tr}{else}{tr}Bank{/tr}{/if}</td>
 							<td>{$a.contact_title|escape}</td>
 							<td>{$a.txn_count|escape}</td>
