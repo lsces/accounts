@@ -10,7 +10,10 @@ namespace Bitweaver\Accounts;
 class AccountsPlan {
 
 	/** Repeat rules and the step each takes. */
-	const REPEATS = [ 'weekly' => '+7 days', '2weekly' => '+14 days', '4weekly' => '+28 days', 'monthly' => '+1 month' ];
+	const REPEATS = [ 'weekly' => '+7 days', '2weekly' => '+14 days', '4weekly' => '+28 days', 'monthly' => '+1 month', '6monthly' => '+6 months', 'annually' => '+1 year' ];
+
+	/** The repeats that count in calendar months, and how many: they keep the day of the month. */
+	const MONTH_STEPS = [ 'monthly' => 1, '6monthly' => 6, 'annually' => 12 ];
 
 	/**
 	 * The date after $pFrom for a repeat rule, as an epoch, or null for no or an unknown rule. A monthly line keeps
@@ -21,9 +24,9 @@ class AccountsPlan {
 			return null;
 		}
 		$d = ( new \DateTime( '@'.$pFrom ) )->setTimezone( $pTz );
-		if( $pRepeat === 'monthly' ) {
+		if( isset( self::MONTH_STEPS[$pRepeat] ) ) {
 			$day = $pDay ?: (int)$d->format( 'j' );
-			$d->modify( 'first day of next month' );
+			$d->modify( 'first day of this month' )->modify( '+'.self::MONTH_STEPS[$pRepeat].' months' );
 			$d->setDate( (int)$d->format( 'Y' ), (int)$d->format( 'n' ), min( $day, (int)$d->format( 't' ) ) );
 		} else {
 			$d->modify( self::REPEATS[$pRepeat] );

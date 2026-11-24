@@ -256,7 +256,7 @@ class AccountsAccount extends LibertyContent {
 				// 'prev' / 'next': pay on the working day before / after when the date is a weekend or bank holiday
 				'adjust' => in_array( $pLine['adjust'] ?? '', [ 'prev', 'next' ], true ) ? $pLine['adjust'] : '',
 				// a monthly line remembers its day of the month, so the 31st survives a short month
-				'day' => ( $pLine['repeat'] ?? '' ) === 'monthly' ? (int)date( 'j', (int)$pLine['due'] ) : '',
+				'day' => isset( AccountsPlan::MONTH_STEPS[$pLine['repeat'] ?? ''] ) ? (int)date( 'j', (int)$pLine['due'] ) : '',
 			], fn( $v ) => $v !== '' ) ?: new \stdClass() ),
 		];
 		if( !empty( $pLine['xref_id'] ) ) {

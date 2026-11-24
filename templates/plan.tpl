@@ -59,7 +59,7 @@
 						<option value="">{tr}Once{/tr}</option>
 						{foreach $repeats as $rp}<option value="{$rp}"{if $form.repeat == $rp} selected="selected"{/if}>{$rp}</option>{/foreach}
 					</select>
-					{formhelp note="weekly, 2weekly (fortnightly), 4weekly, or monthly on the same day."}
+					{formhelp note="weekly, 2weekly (fortnightly), 4weekly, monthly, 6monthly or annually, the last three on the same day of the month."}
 				{/forminput}
 			</div>
 			<div class="form-group">
