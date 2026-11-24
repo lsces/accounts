@@ -175,6 +175,71 @@ class AccountsAccount extends LibertyContent {
 	}
 
 	/**
+	 * The opening balance row (xkey = amount), or null when none is set.
+	 */
+	public function getOpening(): ?array {
+		return $this->mDb->getRow(
+			"SELECT FIRST 1 `xref_id`, `xkey` AS `amount` FROM `".BIT_DB_PREFIX."liberty_xref`
+				WHERE `content_id` = ? AND `item` = 'OPENING' AND `end_date` IS NULL ORDER BY `xref_id` DESC",
+			[ (int)$this->mContentId ]
+		) ?: null;
+	}
+
+	/**
+	 * Set (or change) the opening balance. $pAmount is a plain decimal string.
+	 */
+	public function storeOpening( string $pAmount ): bool {
+		$old = $this->getOpening();
+		$hash = [ 'content_id' => (int)$this->mContentId, 'item' => 'OPENING', 'xkey' => bcadd( $pAmount, '0', 2 ) ];
+		if( $old ) {
+			$hash['xref_id'] = (int)$old['xref_id'];
+		}
+		$xref = new \Bitweaver\Liberty\LibertyXref();
+		$xref->mContentTypeGuid = $this->mContentTypeGuid;
+		$xref->mPackageGuid     = $this->mPackageGuid;
+		return $xref->store( $hash );
+	}
+
+	/**
+	 * Every statement line on the account in date order (then the order they were imported), each with its
+	 * running balance from the opening balance.
+	 *
+	 * @return array<int,array>  date (Y-m-d), epoch, item, desc, amount, out, in, balance, taxYear ('2025-26')
+	 */
+	public function getStatementLines( \DateTimeZone $pTz ): array {
+		$opening = $this->getOpening();
+		$balance = $opening ? (string)$opening['amount'] : '0';
+		$rs = $this->mDb->query(
+			"SELECT `xref_id`, `item`, `start_date`, `xkey`, `data` FROM `".BIT_DB_PREFIX."liberty_xref`
+				WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING') AND `end_date` IS NULL
+				ORDER BY `start_date`, `xorder`, `xref_id`",
+			[ (int)$this->mContentId ]
+		);
+		$ret = [];
+		while( $r = $rs->fetchRow() ) {
+			$d = ( new \DateTime( '@'.(int)$r['start_date'] ) )->setTimezone( $pTz );
+			$data = !empty( $r['data'] ) ? ( json_decode( $r['data'], true ) ?: [] ) : [];
+			$amount = bcadd( (string)$r['xkey'], '0', 2 );
+			$balance = bcadd( $balance, $amount, 2 );
+			// UK tax year: 6 April to 5 April.
+			$y = (int)$d->format( 'Y' );
+			$startYear = $d->format( 'md' ) >= '0406' ? $y : $y - 1;
+			$ret[] = [
+				'xref_id' => (int)$r['xref_id'],
+				'date'    => $d->format( 'Y-m-d' ),
+				'item'    => $r['item'],
+				'desc'    => (string)( $data['description'] ?? '' ),
+				'amount'  => $amount,
+				'out'     => bccomp( $amount, '0', 2 ) < 0 ? ltrim( $amount, '-' ) : '',
+				'in'      => bccomp( $amount, '0', 2 ) > 0 ? $amount : '',
+				'balance' => $balance,
+				'taxYear' => $startYear.'-'.substr( (string)( $startYear + 1 ), 2 ),
+			];
+		}
+		return $ret;
+	}
+
+	/**
 	 * Adds the contact search for the CONTACT item's picker (read by liberty's link picker
 	 * template); everything else is left to the base implementation.
 	 */

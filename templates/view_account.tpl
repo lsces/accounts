@@ -2,6 +2,7 @@
 <div class="display accounts">
 	<div class="header">
 		<div class="floaticon">
+			<a class="btn btn-default btn-sm" href="{$smarty.const.ACCOUNTS_PKG_URL}statement.php?content_id={$gContent->mContentId}">{tr}Statement{/tr}</a>
 			{if $canImport}<a class="btn btn-default btn-sm" href="{$smarty.const.ACCOUNTS_PKG_URL}import_statement.php?content_id={$gContent->mContentId}">{tr}Import statements{/tr}</a>{/if}
 			{if $canUpdate}<a title="{tr}Edit{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}edit_account.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="accessories-text-editor" iexplain="Edit"}</a>{/if}
 		</div>

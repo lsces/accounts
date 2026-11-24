@@ -104,6 +104,22 @@ class AccountsImport {
 	}
 
 	/**
+	 * The balance before the first line, worked back from the first balance the bank printed: that balance
+	 * less everything from the first line up to and including the line carrying it. Only meaningful for the
+	 * earliest statement of an account, so the caller uses it only when the account has no lines yet.
+	 */
+	public static function deriveOpening( array $pLines ): ?string {
+		$sum = '0';
+		foreach( $pLines as $l ) {
+			$sum = bcadd( $sum, $l['amount'], 2 );
+			if( $l['balance'] !== null ) {
+				return bcsub( $l['balance'], $sum, 2 );
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Mark each line as new or already held, by import key, against what the account already has.
 	 * Duplicate keys within the batch itself (the same statement given twice) count as already held.
 	 */

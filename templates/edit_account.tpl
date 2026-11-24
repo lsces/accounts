@@ -38,6 +38,15 @@
 					{formhelp note="The business contact for the bank or service holding the account; it supplies the sort code, number and addresses."}
 				{/forminput}
 			</div>
+			{if $isBank}
+			<div class="form-group">
+				{formlabel label="Opening balance" for="opening"}
+				{forminput}
+					<input type="text" class="form-control" name="opening" id="opening" value="{$openingText|escape}" />
+					{formhelp note="The balance before the first recorded line. Left blank, the first statement import works it out from the bank's printed balance."}
+				{/forminput}
+			</div>
+			{/if}
 			<div class="form-group submit">
 				<input type="submit" class="btn btn-primary" name="save" value="{tr}Save{/tr}" />
 			</div>

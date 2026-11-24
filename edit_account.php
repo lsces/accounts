@@ -38,6 +38,10 @@ $title = trim( $_REQUEST['title'] ?? ( $gContent->mInfo['title'] ?? '' ) );
 $contactId = isset( $_REQUEST['contact_id'] ) ? (int)$_REQUEST['contact_id'] : (int)( $link['xref'] ?? 0 );
 $contactTitle = trim( $_REQUEST['contact_title'] ?? '' );
 
+$isBank = !( $gContent instanceof AccountsPaypal ) && ( $gContent->mContentId || ( $_REQUEST['kind'] ?? '' ) !== 'paypal' );
+$opening = $gContent->mContentId ? $gContent->getOpening() : null;
+$openingText = trim( (string)( $_REQUEST['opening'] ?? ( $opening['amount'] ?? '' ) ) );
+
 if( !empty( $_REQUEST['save'] ) ) {
 	// store() takes &$pParamHash by reference — must be a named variable, not a literal.
 	$pHash = [ 'title' => $title ];
@@ -61,6 +65,15 @@ if( !empty( $_REQUEST['save'] ) ) {
 				$errors['contact'] = KernelTools::tra( 'The account was saved but the contact link was not.' );
 			}
 		}
+		if( $isBank && $gContent instanceof AccountsAccount && !( $gContent instanceof AccountsPaypal ) && isset( $_REQUEST['opening'] ) ) {
+			if( $openingText === '' ) {
+				// left blank: keep whatever is set
+			} elseif( !is_numeric( str_replace( ',', '', $openingText ) ) ) {
+				$errors['opening'] = KernelTools::tra( 'The opening balance must be a number.' );
+			} elseif( !$gContent->storeOpening( str_replace( ',', '', $openingText ) ) ) {
+				$errors['opening'] = KernelTools::tra( 'The opening balance was not saved.' );
+			}
+		}
 		if( !$errors ) {
 			header( 'Location: '.ACCOUNTS_PKG_URL.'view_account.php?content_id='.$gContent->mContentId );
 			die;
@@ -80,5 +93,7 @@ $gBitSmarty->assign( 'accountTitle', $title );
 $gBitSmarty->assign( 'contactId',    $contactId ?: '' );
 $gBitSmarty->assign( 'contactTitle', $contactTitle );
 $gBitSmarty->assign( 'errors',       $errors );
+$gBitSmarty->assign( 'isBank',       $isBank );
+$gBitSmarty->assign( 'openingText',  $openingText );
 
 $gBitSystem->display( 'bitpackage:accounts/edit_account.tpl', $gContent->mContentId ? KernelTools::tra( 'Edit account' ) : KernelTools::tra( 'New account' ), [ 'display_mode' => 'edit' ] );
