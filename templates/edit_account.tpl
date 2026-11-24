@@ -1,0 +1,51 @@
+{strip}
+<div class="edit accounts">
+	<div class="header">
+		<h1>{if $gContent->mContentId}{tr}Edit account{/tr}{else}{tr}New account{/tr}{/if}</h1>
+	</div>
+	<div class="body">
+		{formfeedback error=$errors}
+		{form id="editAccountForm"}
+			{if $gContent->mContentId}<input type="hidden" name="content_id" value="{$gContent->mContentId}" />{/if}
+			<div class="form-group">
+				{formlabel label="Account name" for="title"}
+				{forminput}
+					<input type="text" class="form-control" name="title" id="title" value="{$accountTitle|escape}" required="required" />
+					{formhelp note="For example: Business Current, PayPal, Flat Rent."}
+				{/forminput}
+			</div>
+			<div class="form-group">
+				{formlabel label="Contact" for="link_search"}
+				{forminput}
+					<input type="hidden" name="contact_id" id="contact_id" value="{$contactId|escape}" />
+					<input type="hidden" name="contact_title" id="contact_title" value="{$contactTitle|escape}" />
+					<div class="dropdown">
+						<input type="text" class="form-control" id="link_search" autocomplete="off" value="{$contactTitle|escape}" placeholder="{tr}Type to search…{/tr}" />
+						<ul id="link_dropdown" class="dropdown-menu col-xs-12 pre-scrollable"></ul>
+					</div>
+					{formhelp note="The business contact for the bank or service holding the account; it supplies the sort code, number and addresses."}
+				{/forminput}
+			</div>
+			<div class="form-group submit">
+				<input type="submit" class="btn btn-primary" name="save" value="{tr}Save{/tr}" />
+			</div>
+		{/form}
+	</div>
+</div>
+{/strip}
+<script>
+(function($) {
+	function start() {
+		BitComponentTypeahead({
+			input:       '#link_search',
+			dropdown:    '#link_dropdown',
+			idField:     '#contact_id',
+			lookupUrl:   '{$smarty.const.CONTACT_PKG_URL}includes/lookup_contact.php',
+			extraParams: function() { return { type: 'contactbusiness' }; },
+			label:       function(row) { return row.title + (row.scref ? ' (' + row.scref + ')' : ''); }
+		});
+		$('#link_search').on('input', function() { $('#contact_title').val($(this).val()); });
+	}
+	if (window.BitComponentTypeahead) { start(); } else { $.getScript('{$smarty.const.KERNEL_PKG_URL}scripts/BitComponentTypeahead.js', start); }
+}(jQuery));
+</script>

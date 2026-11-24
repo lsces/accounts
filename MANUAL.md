@@ -10,13 +10,18 @@ payroll, no company accounts. Invoicing is out of scope for the first build.
 
 ## Content model
 
-There is no content type of its own. An **account is a Contact business**: its sort code, account
-number and other details are that contact's own fields. Every statement line is a `liberty_xref`
-row of item `TXN`, hung straight off the account contact (`multiple=1`, many rows, editable).
+**An account is its own content type** (`AccountsAccount`, a pure `liberty_content` record whose
+title is the account's name — the same shape as `health`'s day object). The **Contact** record for
+the bank or service holding the account is linked to it with a `CONTACT` xref row and supplies the
+extra detail (sort code, number, addresses); none of that is kept on the account. `edit_account.php`
+creates an account and sets the link.
+
+Every statement line is a `liberty_xref` row of item `TXN` on the account (`multiple=1`, many rows,
+editable). No tables of the package's own.
 
 | Column | Holds |
 |---|---|
-| `content_id` | the account's contact |
+| `content_id` | the account |
 | `start_date` | the transaction date; the tax year is derived from it |
 | `xkey` | signed amount, negative = paid out |
 | `xkey_ext` | import key: the payment service's transaction id, or a hash of date, amount, type and description |
@@ -33,6 +38,14 @@ are entered because they are business items.
 `not_claimed`. It is set per counterparty and carried onto that counterparty's other lines; a
 counterparty seen for the first time goes to a "needs a treatment" list. Reimbursements and the
 purchases behind them are reported gross (receipts as income, costs as expenses), on a cash basis.
+
+## Pages
+
+- `index.php` — the accounts, with contact and transaction count.
+- `view_account.php` — one account: the contact link and the transactions, as liberty xref tabs.
+- `edit_account.php` — create or rename an account and pick its contact.
+
+Permissions `p_accounts_view/create/update/expunge/admin` are granted to `admin` only by default.
 
 ## Tax year
 
