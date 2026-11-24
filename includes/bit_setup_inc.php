@@ -25,7 +25,7 @@ if( $gBitSystem->isPackageActive( 'accounts' ) ) {
 	];
 	$gBitSystem->registerAppMenu( $menuHash );
 
-	// No content type of its own: accounts are Contact businesses and TXN is an xref item on
+	// No content type of its own: accounts are Contact businesses and statement lines are xref items on
 	// them (see admin/schema_inc.php and MANUAL.md). Service/hook registration, if ever needed,
 	// belongs here — see stock/includes/bit_setup_inc.php for the pattern.
 }

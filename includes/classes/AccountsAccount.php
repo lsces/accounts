@@ -1,7 +1,7 @@
 <?php
 /**
  * One account (a bank account, a payment-service account, a rent account...) — the base
- * object every TXN xref row hangs off. Stored as a pure liberty_content record
+ * object every statement-line xref row hangs off. Stored as a pure liberty_content record
  * (content_type_guid='accountsaccount'), title = the account's own name; content_id is the only
  * identifier. The Contact record for the bank or service holding the account is linked to it
  * with a CONTACT xref row and supplies the extra detail (sort code, number, addresses) — see

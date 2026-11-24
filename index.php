@@ -20,7 +20,7 @@ $gBitSystem->verifyPermission( 'p_accounts_view' );
 $accounts = $gBitDb->getAll(
 	"SELECT lc.`content_id`, lc.`title`,
 			( SELECT COUNT(*) FROM `".BIT_DB_PREFIX."liberty_xref` x
-				WHERE x.`content_id` = lc.`content_id` AND x.`item` = 'TXN' AND x.`end_date` IS NULL ) AS txn_count,
+				WHERE x.`content_id` = lc.`content_id` AND x.`item` <> 'CONTACT' AND x.`end_date` IS NULL ) AS txn_count,
 			( SELECT FIRST 1 c.`title` FROM `".BIT_DB_PREFIX."liberty_xref` l
 				JOIN `".BIT_DB_PREFIX."liberty_content` c ON ( c.`content_id` = l.`xref` )
 				WHERE l.`content_id` = lc.`content_id` AND l.`item` = 'CONTACT' AND l.`end_date` IS NULL ) AS contact_title

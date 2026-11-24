@@ -16,8 +16,14 @@ the bank or service holding the account is linked to it with a `CONTACT` xref ro
 extra detail (sort code, number, addresses); none of that is kept on the account. `edit_account.php`
 creates an account and sets the link.
 
-Every statement line is a `liberty_xref` row of item `TXN` on the account (`multiple=1`, many rows,
-editable). No tables of the package's own.
+Every statement line is a `liberty_xref` row on the account (`multiple=1`, many rows, editable), and
+the row's item is the line's type. Bank accounts share the bank's own Type vocabulary (`DD` direct
+debit, `BP` bill payment, `CR` credit, `VIS` Visa debit, `CTL` contactless, `DR` debit/charges, `TFR`
+transfer, `ATM` cash, `BANK_OTHER` for anything new); PayPal has its own `PP_*` set (express checkout,
+website payment, pre-approved payment, card/bank deposits and withdrawals, conversion, refund, and
+`PP_AUTH` for authorisation holds, which shadow the real payment and are not counted). The
+direction of money is the sign of the amount, never the type. The generic xref tab lists by item, so
+statement views give date order and running balance. No tables of the package's own.
 
 | Column | Holds |
 |---|---|
@@ -26,7 +32,7 @@ editable). No tables of the package's own.
 | `xkey` | signed amount, negative = paid out |
 | `xkey_ext` | import key: the payment service's transaction id, or a hash of date, amount, type and description |
 | `xref` | the counterparty, as a contact's content_id; null until matched |
-| `data` (json) | bank type code, description, running balance, treatment, claim reference, source file, note; for a payment service also gross, fee, net and status |
+| `data` (json) | original type text, description, running balance, treatment, claim reference, source file, note; for a payment service also gross, fee, net and status |
 
 An account is anything with a running balance, so a bank account, a payment-service account and a
 rent account are the same kind of thing; the balance simply rolls on across years.
