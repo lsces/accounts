@@ -266,6 +266,15 @@ class AccountsAccount extends LibertyContent {
 		return $this->storeRow( $hash );
 	}
 
+	/** Whether the account's balance is cash in hand (counted in the front-page forecast). A tenancy ledger, say, is not. Default yes. */
+	public function isCash(): bool {
+		return $this->getPreference( 'accounts_cash', 'y' ) !== 'n';
+	}
+
+	public function setCash( bool $pCash ): void {
+		$this->storePreference( 'accounts_cash', $pCash ? null : 'n' );
+	}
+
 	/** Note the balance as it stands now (or at $pAt, an epoch), e.g. read off the bank's app. */
 	public function storeBalanceNote( string $pAmount, ?int $pAt = null ): bool {
 		return $this->storeRow( [

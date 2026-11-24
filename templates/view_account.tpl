@@ -46,6 +46,18 @@
 		{else}
 			<p>{tr}No transactions yet.{/tr}</p>
 		{/if}
+		{if $planRows}
+			<h2>{tr}Planned, next 12 weeks{/tr}</h2>
+			<p class="help-block">{tr}From a balance now of{/tr} {$planNow}.</p>
+			<table class="table table-condensed">
+				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}What{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Projected balance{/tr}</th></tr></thead>
+				<tbody>
+					{foreach $planRows as $r}
+						<tr class="text-muted{if $r.overdue} warning{/if}"><td>{$r.date|escape}{if $r.overdue} <small>{tr}overdue{/tr}</small>{/if}</td><td>{$r.description|escape}</td><td class="text-right">{$r.out}</td><td class="text-right">{$r.in}</td><td class="text-right">{$r.balance}</td></tr>
+					{/foreach}
+				</tbody>
+			</table>
+		{/if}
 	</div>
 </div>
 {/strip}

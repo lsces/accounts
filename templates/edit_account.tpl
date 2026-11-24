@@ -46,6 +46,13 @@
 					{formhelp note="The balance before the first recorded line. Left blank, the first statement import works it out from the bank's printed balance."}
 				{/forminput}
 			</div>
+			<div class="form-group">
+				{forminput}
+					<input type="hidden" name="cash_present" value="1" />
+					<label><input type="checkbox" name="cash" value="1"{if $isCash} checked="checked"{/if} /> {tr}Counts as cash (included in the front page forecast){/tr}</label>
+					{formhelp note="Untick for a ledger that is not money in hand, such as a tenancy rent account."}
+				{/forminput}
+			</div>
 			{/if}
 			<div class="form-group submit">
 				<input type="submit" class="btn btn-primary" name="save" value="{tr}Save{/tr}" />

@@ -35,7 +35,7 @@
 					<tbody>
 						{foreach $balances as $b}
 							<tr>
-								<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$b.account_id}">{$b.title|escape}</a></td>
+								<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$b.account_id}">{$b.title|escape}</a>{if !$b.cash} <small>({tr}not cash{/tr})</small>{/if}</td>
 								<td class="text-right">{$b.amount}</td>
 								<td>{if $b.source == 'statement'}{$b.as_at} <small>({tr}statement{/tr})</small>{elseif $b.source == 'noted'}{$b.as_at} <small>({tr}noted{/tr})</small>{else}<small>{tr}opening{/tr}</small>{/if}</td>
 								{if $canNote}<td><input type="text" class="form-control" name="balance[{$b.account_id}]" value="" style="width:9em" /></td>{/if}

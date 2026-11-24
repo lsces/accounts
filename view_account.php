@@ -49,6 +49,23 @@ foreach( $rows as &$r ) {
 }
 unset( $r );
 
+// This account's own forecast: its planned lines for the next 12 weeks, the balance carried on from where it stands now.
+$planRows = [];
+if( !( $gContent instanceof AccountsPaypal ) ) {
+	$cur = $gContent->getCurrentBalance( $gBitUser->getUserTimezone() );
+	$running = $cur['amount'];
+	$tz = $gBitUser->getUserTimezone();
+	$today = ( new \DateTime( 'today', $tz ) )->getTimestamp();
+	foreach( AccountsPlan::occurrences( $gContent->getPlanned(), $today, ( new \DateTime( 'today', $tz ) )->modify( '+84 days' )->getTimestamp(), $tz ) as $o ) {
+		$running = bcadd( $running, $o['amount'], 2 );
+		$planRows[] = [ 'date' => ( new \DateTime( '@'.$o['when'] ) )->setTimezone( $tz )->format( 'D j M Y' ), 'overdue' => $o['overdue'], 'description' => $o['description'],
+			'out' => bccomp( $o['amount'], '0', 2 ) < 0 ? number_format( (float)ltrim( $o['amount'], '-' ), 2 ) : '',
+			'in'  => bccomp( $o['amount'], '0', 2 ) > 0 ? number_format( (float)$o['amount'], 2 ) : '',
+			'balance' => number_format( (float)$running, 2 ) ];
+	}
+	$gBitSmarty->assign( 'planNow', number_format( (float)$cur['amount'], 2 ) );
+}
+$gBitSmarty->assign( 'planRows',  $planRows );
 $gBitSmarty->assign( 'gContent',   $gContent );
 $gBitSmarty->assign( 'contactLink', $gContent->getContactLink() );
 $gBitSmarty->assign( 'canUpdate',  $gBitUser->hasPermission( 'p_accounts_update' ) );

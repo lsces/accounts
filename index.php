@@ -63,10 +63,13 @@ foreach( $accounts as $a ) {
 	$acct = AccountsAccount::loadFor( (int)$a['content_id'] );
 	$acct->load();
 	$cur = $acct->getCurrentBalance( $tz );
-	$startBalance = bcadd( $startBalance, $cur['amount'], 2 );
-	$balances[] = [ 'account_id' => (int)$a['content_id'], 'title' => $a['title'], 'amount' => number_format( (float)$cur['amount'], 2 ),
+	$isCash = $acct->isCash();
+	if( $isCash ) {
+		$startBalance = bcadd( $startBalance, $cur['amount'], 2 );
+	}
+	$balances[] = [ 'cash' => $isCash, 'account_id' => (int)$a['content_id'], 'title' => $a['title'], 'amount' => number_format( (float)$cur['amount'], 2 ),
 		'as_at' => $cur['as_at'] ? ( new \DateTime( '@'.$cur['as_at'] ) )->setTimezone( $tz )->format( 'j M' ) : '', 'source' => $cur['source'] ];
-	foreach( AccountsPlan::occurrences( $acct->getPlanned(), $from, $to, $tz ) as $o ) {
+	foreach( $isCash ? AccountsPlan::occurrences( $acct->getPlanned(), $from, $to, $tz ) : [] as $o ) {
 		$hasPlan = true;
 		$forecast[] = $o + [ 'account' => $a['title'], 'account_id' => (int)$a['content_id'] ];
 	}

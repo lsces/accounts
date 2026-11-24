@@ -65,6 +65,9 @@ if( !empty( $_REQUEST['save'] ) ) {
 				$errors['contact'] = KernelTools::tra( 'The account was saved but the contact link was not.' );
 			}
 		}
+		if( $isBank && isset( $_REQUEST['cash_present'] ) ) {
+			$gContent->setCash( !empty( $_REQUEST['cash'] ) );
+		}
 		if( $isBank && $gContent instanceof AccountsAccount && !( $gContent instanceof AccountsPaypal ) && isset( $_REQUEST['opening'] ) ) {
 			if( $openingText === '' ) {
 				// left blank: keep whatever is set
@@ -98,6 +101,7 @@ $gBitSmarty->assign( 'contactId',    $contactId ?: '' );
 $gBitSmarty->assign( 'contactTitle', $contactTitle );
 $gBitSmarty->assign( 'errors',       $errors );
 $gBitSmarty->assign( 'isBank',       $isBank );
+$gBitSmarty->assign( 'isCash',       !$gContent->mContentId || $gContent->isCash() );
 $gBitSmarty->assign( 'openingText',  $openingText );
 
 $gBitSystem->display( 'bitpackage:accounts/edit_account.tpl', $gContent->mContentId ? KernelTools::tra( 'Edit account' ) : KernelTools::tra( 'New account' ), [ 'display_mode' => 'edit' ] );
