@@ -17,13 +17,15 @@ extra detail (sort code, number, addresses); none of that is kept on the account
 creates an account and sets the link.
 
 Every statement line is a `liberty_xref` row on the account (`multiple=1`, many rows, editable), and
-the row's item is the line's type. Bank accounts share the bank's own Type vocabulary (`DD` direct
-debit, `BP` bill payment, `CR` credit, `VIS` Visa debit, `CTL` contactless, `DR` debit/charges, `TFR`
-transfer, `ATM` cash, `BANK_OTHER` for anything new); PayPal has its own `PP_*` set (express checkout,
-website payment, pre-approved payment, card/bank deposits and withdrawals, conversion, refund, and
-`PP_AUTH` for authorisation holds, which shadow the real payment and are not counted). The
-direction of money is the sign of the amount, never the type. The generic xref tab lists by item, so
-statement views give date order and running balance. No tables of the package's own.
+the row's item is the line's type. That vocabulary is a site-local scheme
+(`config/local/xref_schemes/accounts.php`, applied from liberty's Local Scheme page), not part of the
+package install, which carries only the `CONTACT` link. For bank accounts it is the bank's own Type
+column, shared by business and personal accounts: `DD` direct debit, `BP` bill payment, `CR` credit,
+`VIS` Visa debit, `CTL` contactless, `DR` debit/charges, `TFR` transfer, `ATM` cash, `BANK_OTHER` for
+anything new. The bank is the master record: PayPal holds only the few sales (`PP_SALE`) and where that
+money went (`PP_PAYOUT`), not the purchases it funded from the bank. The direction of money is the sign
+of the amount, never the type. The generic xref tab lists by item, so statement views give date order
+and a running balance. No tables of the package's own.
 
 | Column | Holds |
 |---|---|
