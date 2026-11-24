@@ -17,7 +17,11 @@ global $gBitSystem, $gBitSmarty, $gBitUser;
 
 $gBitSystem->verifyPackage( 'accounts' );
 
-$gContent = new AccountsAccount( null, !empty( $_REQUEST['content_id'] ) ? (int)$_REQUEST['content_id'] : null );
+// An existing account loads as its own kind; a new one is a bank-type account unless kind=paypal is chosen.
+$gContent = AccountsAccount::loadFor( !empty( $_REQUEST['content_id'] ) ? (int)$_REQUEST['content_id'] : null );
+if( !$gContent->mContentId && ( $_REQUEST['kind'] ?? '' ) === 'paypal' ) {
+	$gContent = new AccountsPaypal();
+}
 if( $gContent->mContentId ) {
 	$gContent->load();
 	if( !$gContent->isValid() ) {
@@ -71,6 +75,7 @@ if( $contactId && $contactTitle === '' ) {
 }
 
 $gBitSmarty->assign( 'gContent',     $gContent );
+$gBitSmarty->assign( 'kind',         $gContent instanceof AccountsPaypal ? 'paypal' : 'bank' );
 $gBitSmarty->assign( 'accountTitle', $title );
 $gBitSmarty->assign( 'contactId',    $contactId ?: '' );
 $gBitSmarty->assign( 'contactTitle', $contactTitle );

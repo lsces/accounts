@@ -22,7 +22,7 @@ the row's item is the line's type. That vocabulary is a site-local scheme
 package install, which carries only the `CONTACT` link. For bank accounts it is the bank's own Type
 column, shared by business and personal accounts: `DD` direct debit, `BP` bill payment, `CR` credit,
 `VIS` Visa debit, `CTL` contactless, `DR` debit/charges, `TFR` transfer, `ATM` cash, `BANK_OTHER` for
-anything new. The bank is the master record: PayPal holds only the few sales (`PP_SALE`) and where that
+anything new. PayPal is its own account type (`AccountsPaypal`, guid `accountspaypal`, same record shape) so it carries its own tabs and tools and a bank account never shows them; the kind is chosen when the account is created. The bank is the master record: PayPal holds only the few sales (`PP_SALE`) and where that
 money went (`PP_PAYOUT`), not the purchases it funded from the bank. The direction of money is the sign
 of the amount, never the type. The generic xref tab lists by item, so statement views give date order
 and a running balance. No tables of the package's own.

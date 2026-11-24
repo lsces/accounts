@@ -18,6 +18,22 @@ defined( 'ACCOUNTSACCOUNT_CONTENT_TYPE_GUID' ) || define( 'ACCOUNTSACCOUNT_CONTE
 #[\AllowDynamicProperties]
 class AccountsAccount extends LibertyContent {
 
+	/** Content type of this class; a subclass (AccountsPaypal) overrides these three. */
+	const GUID        = 'accountsaccount';
+	const NAME        = 'Account';
+	const NAME_PLURAL = 'Accounts';
+
+	/**
+	 * The right class for a stored account, whichever kind it is (bank or PayPal).
+	 *
+	 * @param int|null $pContentId  Null for a blank account of the base kind.
+	 */
+	public static function loadFor( $pContentId ): AccountsAccount {
+		global $gBitDb;
+		$guid = $pContentId ? $gBitDb->getOne( "SELECT `content_type_guid` FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ?", [ (int)$pContentId ] ) : null;
+		return $guid === AccountsPaypal::GUID ? new AccountsPaypal( null, (int)$pContentId ) : new AccountsAccount( null, (int)$pContentId );
+	}
+
 	/**
 	 * @param int|null $pDummy      Unused — LibertyBase::getNewObject() always calls
 	 *                              `new $class(null, $contentId)`; see HealthDay for the same contract.
@@ -25,17 +41,17 @@ class AccountsAccount extends LibertyContent {
 	 */
 	public function __construct( $pDummy = null, $pContentId = null ) {
 		parent::__construct();
-		$this->mContentTypeGuid = ACCOUNTSACCOUNT_CONTENT_TYPE_GUID;
+		$this->mContentTypeGuid = static::GUID;
 		$this->mContentId = (int)( $pContentId ?? $pDummy );
 
 		$this->registerContentType(
-			ACCOUNTSACCOUNT_CONTENT_TYPE_GUID, [
-				'content_type_guid'   => ACCOUNTSACCOUNT_CONTENT_TYPE_GUID,
-				'content_name'        => 'Account',
-				'content_name_plural' => 'Accounts',
-				'handler_class'       => 'AccountsAccount',
+			static::GUID, [
+				'content_type_guid'   => static::GUID,
+				'content_name'        => static::NAME,
+				'content_name_plural' => static::NAME_PLURAL,
+				'handler_class'       => ( new \ReflectionClass( static::class ) )->getShortName(),
 				'handler_package'     => 'accounts',
-				'handler_file'        => 'AccountsAccount.php',
+				'handler_file'        => ( new \ReflectionClass( static::class ) )->getShortName().'.php',
 				'maintainer_url'      => 'https://www.bitweaver.org',
 		], );
 
@@ -57,7 +73,7 @@ class AccountsAccount extends LibertyContent {
 			$lookupContentId = (int)$pLookupHash['content_id'];
 		}
 		if( static::verifyId( $lookupContentId ) ) {
-			$ret = static::getLibertyObject( $lookupContentId, ACCOUNTSACCOUNT_CONTENT_TYPE_GUID );
+			$ret = static::getLibertyObject( $lookupContentId, static::GUID );
 		}
 		return $ret;
 	}
@@ -72,8 +88,9 @@ class AccountsAccount extends LibertyContent {
 			$selectSql = $joinSql = $whereSql = '';
 			$bindVars = [];
 
-			$whereSql = " WHERE lc.`content_id` = ? AND lc.`content_type_guid` = '".ACCOUNTSACCOUNT_CONTENT_TYPE_GUID."'";
+			$whereSql = " WHERE lc.`content_id` = ? AND lc.`content_type_guid` = ?";
 			$bindVars[] = $this->mContentId;
+			$bindVars[] = static::GUID;
 
 			$this->getServicesSql( 'content_load_sql_function', $selectSql, $joinSql, $whereSql, $bindVars, $this );
 
@@ -135,7 +152,7 @@ class AccountsAccount extends LibertyContent {
 		}
 		return (bool)$this->mDb->getOne(
 			"SELECT 1 FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ? AND `content_type_guid` = ?",
-			[ $this->mContentId, ACCOUNTSACCOUNT_CONTENT_TYPE_GUID ]
+			[ $this->mContentId, static::GUID ]
 		);
 	}
 

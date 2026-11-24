@@ -32,6 +32,7 @@ $gBitInstaller->registerPreferences( ACCOUNTS_PKG_NAME, [
 // ### Register content types
 $gBitInstaller->registerContentObjects( ACCOUNTS_PKG_NAME, [
 	'AccountsAccount' => ACCOUNTS_PKG_CLASS_PATH.'AccountsAccount.php',
+	'AccountsPaypal'  => ACCOUNTS_PKG_CLASS_PATH.'AccountsPaypal.php',
 ] );
 
 // ### Default User Permissions
@@ -60,14 +61,17 @@ $X = BIT_DB_PREFIX;
 $xrefTypes = [];
 $xrefItems = [];
 
-// The package carries only what every install needs: the link from an account to its contact record.
+// The package carries only what every install needs: the link from an account to its contact record,
+// on both account types (bank and PayPal, which have their own content types so each gets its own tabs).
 // The statement-line vocabulary (the bank's Type codes, a payment service's types) is site-specific and
 // is a local scheme, config/local/xref_schemes/accounts.php (liberty's Local Scheme page applies it),
 // not part of a new install. See MANUAL.md for the row layout those items share.
-$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('general','accountsaccount','General',1,3,'','')";
+foreach( [ 'accountsaccount', 'accountspaypal' ] as $guid ) {
+	$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('general','$guid','General',1,3,'','')";
 
-// CONTACT - the contact record for the bank or service holding the account. xref = that
-// contact's content_id; picked with a search (see AccountsAccount::enrichXrefDisplay()). One per account.
-$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('CONTACT','accountsaccount','general','Contact',0,0,3,'','link',NULL)";
+	// CONTACT - the contact record for the bank or service holding the account. xref = that
+	// contact's content_id; picked with a search (see AccountsAccount::enrichXrefDisplay()). One per account.
+	$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('CONTACT','$guid','general','Contact',0,0,3,'','link',NULL)";
+}
 
 $gBitInstaller->registerSchemaDefault( ACCOUNTS_PKG_NAME, array_merge( $xrefTypes, $xrefItems ) );

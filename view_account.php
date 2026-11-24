@@ -17,7 +17,7 @@ global $gBitSystem, $gBitSmarty, $gBitUser;
 $gBitSystem->verifyPackage( 'accounts' );
 $gBitSystem->verifyPermission( 'p_accounts_view' );
 
-$gContent = new AccountsAccount( null, (int)( $_REQUEST['content_id'] ?? 0 ) );
+$gContent = AccountsAccount::loadFor( (int)( $_REQUEST['content_id'] ?? 0 ) );
 $gContent->load();
 if( !$gContent->isValid() ) {
 	$gBitSystem->fatalError( KernelTools::tra( 'No valid account specified.' ) );

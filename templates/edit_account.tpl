@@ -7,6 +7,18 @@
 		{formfeedback error=$errors}
 		{form id="editAccountForm"}
 			{if $gContent->mContentId}<input type="hidden" name="content_id" value="{$gContent->mContentId}" />{/if}
+			{if !$gContent->mContentId}
+			<div class="form-group">
+				{formlabel label="Kind" for="kind"}
+				{forminput}
+					<select class="form-control" name="kind" id="kind">
+						<option value="bank"{if $kind != 'paypal'} selected="selected"{/if}>{tr}Bank or other account{/tr}</option>
+						<option value="paypal"{if $kind == 'paypal'} selected="selected"{/if}>{tr}PayPal{/tr}</option>
+					</select>
+					{formhelp note="PayPal accounts have their own tabs and tools; the kind cannot be changed afterwards."}
+				{/forminput}
+			</div>
+			{/if}
 			<div class="form-group">
 				{formlabel label="Account name" for="title"}
 				{forminput}
