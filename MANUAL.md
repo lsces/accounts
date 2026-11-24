@@ -81,3 +81,13 @@ still without a treatment, so nothing is dropped silently.
 
 Import a year already done by hand and compare the totals against that year's own working before
 relying on the package for the current year.
+
+## Importing statements
+
+`import_statement.php` takes the business account's CSV downloads and the personal account's statement PDFs, previews
+them (new lines, lines already held, whether the printed balances reconcile) and imports on confirmation. A PDF has
+no table, only words at positions and one to three description rows per transaction, so `AccountsPdfStatement` reads
+it into the same CSV the business download gives: the type code, description rows and amount are placed by their
+columns, and the amount is paid out, paid in or balance by which right-hand column it ends in. It also checks that the
+statement's opening balance plus its lines gives its closing balance. Each imported file is kept under
+`storage/accounts/archive/<account id>/` (a PDF with the text read from it beside it). A repeat import adds nothing.

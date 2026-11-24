@@ -28,12 +28,34 @@ if( $gContent instanceof AccountsPaypal ) {
 
 $tz = $gBitUser->getUserTimezone();
 $files = [];   // name => csv text, from this upload or carried over from the preview
+$pdfs = [];    // names of uploaded PDFs, waiting in pending/ until the import is confirmed
 $errors = [];
+$accountKey = (int)$gContent->mContentId;
+$pendingDir = ACCOUNTS_IMPORT_PATH.'pending/'.$accountKey.'/';
+$safeName = fn( $n ) => preg_replace( '/[^A-Za-z0-9 ()._-]/', '_', basename( (string)$n ) );
 
 if( !empty( $_FILES['csv']['name'] ) && is_array( $_FILES['csv']['name'] ) ) {
 	foreach( $_FILES['csv']['name'] as $i => $name ) {
 		if( $_FILES['csv']['error'][$i] === UPLOAD_ERR_OK && is_uploaded_file( $_FILES['csv']['tmp_name'][$i] ) ) {
-			$files[basename( $name )] = (string)file_get_contents( $_FILES['csv']['tmp_name'][$i] );
+			if( preg_match( '/\.pdf$/i', $name ) ) {
+				// A personal-account PDF is read into the same CSV text the business download gives; the PDF itself
+				// waits in pending/ and is archived once the import is confirmed.
+				$read = AccountsPdfStatement::toCsv( $_FILES['csv']['tmp_name'][$i] );
+				foreach( $read['warnings'] as $w ) {
+					$errors[] = basename( $name ).': '.$w;
+				}
+				if( $read['csv'] !== '' ) {
+					$files[basename( $name )] = $read['csv'];
+					if( !is_dir( $pendingDir ) ) {
+						mkdir( $pendingDir, 0777, true );
+					}
+					if( move_uploaded_file( $_FILES['csv']['tmp_name'][$i], $pendingDir.$safeName( $name ) ) ) {
+						$pdfs[] = basename( $name );
+					}
+				}
+			} else {
+				$files[basename( $name )] = (string)file_get_contents( $_FILES['csv']['tmp_name'][$i] );
+			}
 		} elseif( $_FILES['csv']['error'][$i] !== UPLOAD_ERR_NO_FILE ) {
 			$errors[] = basename( $name ).': upload failed';
 		}
@@ -41,6 +63,11 @@ if( !empty( $_FILES['csv']['name'] ) && is_array( $_FILES['csv']['name'] ) ) {
 } elseif( !empty( $_POST['carry_name'] ) && is_array( $_POST['carry_name'] ) ) {
 	foreach( $_POST['carry_name'] as $i => $name ) {
 		$files[(string)$name] = (string)( $_POST['carry_csv'][$i] ?? '' );
+	}
+	foreach( (array)( $_POST['carry_pdf'] ?? [] ) as $name ) {
+		if( isset( $files[(string)$name] ) ) {
+			$pdfs[] = (string)$name;
+		}
 	}
 }
 ksort( $files );
@@ -71,10 +98,15 @@ if( !empty( $_POST['do_import'] ) && $lines ) {
 		mkdir( $archiveDir, 0777, true );
 	}
 	foreach( $files as $name => $text ) {
-		$safe = preg_replace( '/[^A-Za-z0-9 ()._-]/', '_', basename( (string)$name ) );
-		if( $safe !== '' && $safe[0] !== '.' ) {
-			file_put_contents( $archiveDir.$safe, $text );
+		$safe = $safeName( $name );
+		if( $safe === '' || $safe[0] === '.' ) {
+			continue;
 		}
+		if( in_array( $name, $pdfs, true ) && is_file( $pendingDir.$safe ) ) {
+			rename( $pendingDir.$safe, $archiveDir.$safe );   // the original PDF
+			$safe = preg_replace( '/\.pdf$/i', '', $safe ).'.csv';   // and the text read from it, beside it
+		}
+		file_put_contents( $archiveDir.$safe, $text );
 	}
 	$result['opening'] = $openingSet;
 	$errors = array_merge( $errors, $result['errors'] );
@@ -82,7 +114,7 @@ if( !empty( $_POST['do_import'] ) && $lines ) {
 }
 
 $archived = [];
-foreach( glob( ACCOUNTS_IMPORT_PATH.'archive/'.(int)$gContent->mContentId.'/*.csv' ) ?: [] as $path ) {
+foreach( glob( ACCOUNTS_IMPORT_PATH.'archive/'.(int)$gContent->mContentId.'/*.{csv,pdf}', GLOB_BRACE ) ?: [] as $path ) {
 	$archived[] = [ 'name' => basename( $path ), 'size' => filesize( $path ), 'mtime' => filemtime( $path ) ];
 }
 usort( $archived, fn( $a, $b ) => strcmp( $b['name'], $a['name'] ) );
@@ -91,6 +123,7 @@ $otherTypes = array_unique( array_map( fn( $l ) => $l['type'], array_filter( $li
 
 $gBitSmarty->assign( 'gContent',   $gContent );
 $gBitSmarty->assign( 'files',      $files );
+$gBitSmarty->assign( 'pdfs',       $pdfs );
 $gBitSmarty->assign( 'lines',      $lines );
 $gBitSmarty->assign( 'newCount',   $newCount );
 $gBitSmarty->assign( 'problems',   $problems );

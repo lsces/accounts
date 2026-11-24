@@ -17,7 +17,7 @@ class AccountsImport {
 	/** The bank's Type codes that have an item of their own; ')))' is contactless. Anything else goes to BANK_OTHER. */
 	const TYPE_ITEMS = [
 		'DD' => 'DD', 'BP' => 'BP', 'CR' => 'CR', 'VIS' => 'VIS', ')))' => 'CTL',
-		'DR' => 'DR', 'TFR' => 'TFR', 'ATM' => 'ATM',
+		'DR' => 'DR', 'TFR' => 'TFR', 'ATM' => 'ATM', 'OBP' => 'OBP',
 	];
 
 	/**

@@ -37,6 +37,7 @@
 			</table>
 			{form}
 				<input type="hidden" name="content_id" value="{$gContent->mContentId}" />
+				{foreach $pdfs as $name}<input type="hidden" name="carry_pdf[]" value="{$name|escape}" />{/foreach}
 				{foreach $files as $name => $text}
 					<input type="hidden" name="carry_name[]" value="{$name|escape}" />
 					<textarea class="hidden" name="carry_csv[]">{$text|escape}</textarea>
@@ -51,10 +52,10 @@
 			{form enctype="multipart/form-data"}
 				<input type="hidden" name="content_id" value="{$gContent->mContentId}" />
 				<div class="form-group">
-					{formlabel label="Statement CSV files" for="csv"}
+					{formlabel label="Statement files" for="csv"}
 					{forminput}
-						<input type="file" class="form-control" name="csv[]" id="csv" multiple="multiple" accept=".csv" />
-						{formhelp note="Statement downloads (Date, Type, Description, Paid Out, Paid In, Balance). Several at once is fine, and re-importing a statement adds nothing. You see a preview before anything is stored."}
+						<input type="file" class="form-control" name="csv[]" id="csv" multiple="multiple" accept=".csv,.pdf" />
+						{formhelp note="Statement CSV downloads (business account) or statement PDFs (personal account). Several at once is fine, and re-importing a statement adds nothing. You see a preview before anything is stored."}
 					{/forminput}
 				</div>
 				<div class="form-group submit">
