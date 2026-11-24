@@ -27,6 +27,7 @@ $gContent->loadXrefInfo();
 $gBitSmarty->assign( 'gContent',  $gContent );
 $gBitSmarty->assign( 'gXrefInfo', $gContent->mXrefInfo );
 $gBitSmarty->assign( 'contactLink', $gContent->getContactLink() );
+$gBitSmarty->assign( 'canImport', !( $gContent instanceof AccountsPaypal ) && $gBitUser->hasPermission( 'p_accounts_create' ) );
 $gBitSmarty->assign( 'canUpdate', $gBitUser->hasPermission( 'p_accounts_update' ) );
 
 $gBitSystem->display( 'bitpackage:accounts/view_account.tpl', KernelTools::tra( 'Account' ).': '.$gContent->getTitle() );
