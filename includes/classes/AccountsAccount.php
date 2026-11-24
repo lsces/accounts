@@ -194,10 +194,101 @@ class AccountsAccount extends LibertyContent {
 		if( $old ) {
 			$hash['xref_id'] = (int)$old['xref_id'];
 		}
+		return $this->storeRow( $hash );
+	}
+
+	/**
+	 * Store one xref row on this account through a LibertyXref scoped to it (loading it first when it has an xref_id).
+	 */
+	protected function storeRow( array $pHash ): bool {
 		$xref = new \Bitweaver\Liberty\LibertyXref();
 		$xref->mContentTypeGuid = $this->mContentTypeGuid;
 		$xref->mPackageGuid     = $this->mPackageGuid;
-		return $xref->store( $hash );
+		if( !empty( $pHash['xref_id'] ) ) {
+			$xref->load( (int)$pHash['xref_id'] );
+		}
+		return $xref->store( $pHash );
+	}
+
+	/**
+	 * The live planned lines on this account.
+	 *
+	 * @return array<int,array>  xref_id, due (epoch), amount (signed string), description, repeat, until, via, note
+	 */
+	public function getPlanned(): array {
+		$rs = $this->mDb->query(
+			"SELECT `xref_id`, `start_date`, `xkey`, `xkey_ext`, `data` FROM `".BIT_DB_PREFIX."liberty_xref`
+				WHERE `content_id` = ? AND `item` = 'PLAN' AND `end_date` IS NULL ORDER BY `start_date`, `xref_id`",
+			[ (int)$this->mContentId ]
+		);
+		$ret = [];
+		while( $r = $rs->fetchRow() ) {
+			$data = !empty( $r['data'] ) ? ( json_decode( $r['data'], true ) ?: [] ) : [];
+			$ret[] = [
+				'xref_id'     => (int)$r['xref_id'],
+				'due'         => (int)$r['start_date'],
+				'amount'      => bcadd( (string)$r['xkey'], '0', 2 ),
+				'description' => (string)$r['xkey_ext'],
+				'repeat'      => (string)( $data['repeat'] ?? '' ),
+				'until'       => (string)( $data['until'] ?? '' ),
+				'via'         => (string)( $data['via'] ?? '' ),
+				'day'         => (int)( $data['day'] ?? 0 ),
+				'note'        => (string)( $data['note'] ?? '' ),
+			];
+		}
+		return $ret;
+	}
+
+	/**
+	 * Add or change a planned line. $pLine: due (epoch), amount, description, repeat, until, via, note; xref_id to change one.
+	 */
+	public function storePlanned( array $pLine ): bool {
+		$hash = [
+			'content_id' => (int)$this->mContentId,
+			'item'       => 'PLAN',
+			'start_date' => (int)$pLine['due'],
+			'xkey'       => bcadd( (string)$pLine['amount'], '0', 2 ),
+			'xkey_ext'   => (string)$pLine['description'],
+			'edit'       => json_encode( array_filter( [
+				'repeat' => $pLine['repeat'] ?? '', 'until' => $pLine['until'] ?? '', 'via' => $pLine['via'] ?? '', 'note' => $pLine['note'] ?? '',
+				// a monthly line remembers its day of the month, so the 31st survives a short month
+				'day' => ( $pLine['repeat'] ?? '' ) === 'monthly' ? (int)date( 'j', (int)$pLine['due'] ) : '',
+			], fn( $v ) => $v !== '' ) ?: new \stdClass() ),
+		];
+		if( !empty( $pLine['xref_id'] ) ) {
+			$hash['xref_id'] = (int)$pLine['xref_id'];
+		} else {
+			$hash['xorder'] = 1 + (int)$this->mDb->getOne( "SELECT MAX(`xorder`) FROM `".BIT_DB_PREFIX."liberty_xref` WHERE `content_id` = ?", [ (int)$this->mContentId ] );
+		}
+		return $this->storeRow( $hash );
+	}
+
+	/** Take a planned line off the forecast, keeping the row (end-dated), not deleting it. */
+	public function archivePlanned( int $pXrefId ): bool {
+		return $this->storeRow( [ 'xref_id' => $pXrefId, 'content_id' => (int)$this->mContentId, 'item' => 'PLAN', 'end_date' => time() ] );
+	}
+
+	/**
+	 * A planned line has happened: a repeating one moves to its next due date after $pAfter (or is archived once past
+	 * its until date), a one-off is archived. The row is kept, not deleted, so the forecast history stays.
+	 */
+	public function completePlanned( int $pXrefId, \DateTimeZone $pTz ): bool {
+		foreach( $this->getPlanned() as $p ) {
+			if( $p['xref_id'] !== $pXrefId ) {
+				continue;
+			}
+			$next = $p['repeat'] !== '' ? AccountsPlan::nextDue( $p['due'], $p['repeat'], $pTz, $p['day'] ) : null;
+			if( $next !== null && $p['until'] !== '' ) {
+				$until = \DateTime::createFromFormat( '!Y-m-d', $p['until'], $pTz );
+				if( $until && $next > $until->getTimestamp() ) {
+					$next = null;
+				}
+			}
+			return $next !== null
+				? $this->storeRow( [ 'xref_id' => $pXrefId, 'content_id' => (int)$this->mContentId, 'item' => 'PLAN', 'start_date' => $next ] )
+				: $this->archivePlanned( $pXrefId );
+		}
+		return false;
 	}
 
 	/**
@@ -211,7 +302,7 @@ class AccountsAccount extends LibertyContent {
 		$balance = $opening ? (string)$opening['amount'] : '0';
 		$rs = $this->mDb->query(
 			"SELECT `xref_id`, `item`, `start_date`, `xkey`, `data` FROM `".BIT_DB_PREFIX."liberty_xref`
-				WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING') AND `end_date` IS NULL
+				WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING','PLAN') AND `end_date` IS NULL
 				ORDER BY `start_date`, `xorder`, `xref_id`",
 			[ (int)$this->mContentId ]
 		);

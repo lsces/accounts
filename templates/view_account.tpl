@@ -2,6 +2,7 @@
 <div class="display accounts">
 	<div class="header">
 		<div class="floaticon">
+			{if $canUpdate && $canImport}<a title="{tr}Planned lines{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="x-office-calendar" iexplain="Planned lines"}</a>{/if}
 			{if $canImport}<a title="{tr}Import statements{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}import_statement.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="go-down" iexplain="Import statements"}</a>{/if}
 			{if $canUpdate}<a title="{tr}Edit{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}edit_account.php?content_id={$gContent->mContentId}">{biticon ipackage="icons" iname="accessories-text-editor" iexplain="Edit"}</a>{/if}
 		</div>

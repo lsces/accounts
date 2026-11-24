@@ -78,4 +78,11 @@ foreach( [ 'accountsaccount', 'accountspaypal' ] as $guid ) {
 // balance. xkey = the amount. Bank accounts only. One per account.
 $xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('OPENING','accountsaccount','general','Opening balance',0,1,3,'','key-json-text','[\"amount\",\"note\"]')";
 
+// PLAN - an expected future line on the account (the forecast): start_date = next due date, xkey = signed amount
+// (negative = paid out), xkey_ext = what it is, data json = repeat (weekly|2weekly|4weekly|monthly), until
+// (Y-m-d), via (paypal), note. A repeating line rolls to its next date when it happens; a one-off is archived.
+// Never counted by reports, only shown after the last real line. Bank accounts only.
+$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('planned','accountsaccount','Planned',3,3,'','')";
+$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('PLAN','accountsaccount','planned','Planned line',1,1,3,'','key-json-text','[\"amount\",\"description\",\"repeat\",\"until\",\"via\",\"note\"]')";
+
 $gBitInstaller->registerSchemaDefault( ACCOUNTS_PKG_NAME, array_merge( $xrefTypes, $xrefItems ) );

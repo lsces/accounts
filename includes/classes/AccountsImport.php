@@ -126,7 +126,7 @@ class AccountsImport {
 	public static function classify( AccountsAccount $pAccount, array $pLines ): array {
 		$have = [];
 		$rs = $pAccount->mDb->query(
-			"SELECT `xkey_ext` FROM `".BIT_DB_PREFIX."liberty_xref` WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING') AND `xkey_ext` IS NOT NULL",
+			"SELECT `xkey_ext` FROM `".BIT_DB_PREFIX."liberty_xref` WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING','PLAN') AND `xkey_ext` IS NOT NULL",
 			[ (int)$pAccount->mContentId ]
 		);
 		while( $r = $rs->fetchRow() ) {

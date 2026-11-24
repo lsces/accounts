@@ -4,6 +4,26 @@
 		<h1>{tr}Accounts{/tr}</h1>
 	</div>
 	<div class="body">
+		<h2>{tr}Next{/tr} {$days} {tr}days{/tr}</h2>
+		{if $forecast}
+			<p class="help-block">{tr}Planned lines across the bank accounts. The balance starts from where the statements leave the accounts together:{/tr} {$startBalance}</p>
+			<table class="table table-condensed table-striped">
+				<thead><tr><th>{tr}Due{/tr}</th><th>{tr}Account{/tr}</th><th>{tr}What{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Balance{/tr}</th></tr></thead>
+				<tbody>
+					{foreach $forecast as $f}
+						<tr{if $f.overdue} class="warning"{/if}>
+							<td>{$f.date|escape}{if $f.overdue} <small>{tr}overdue{/tr}</small>{/if}</td>
+							<td><a href="{$smarty.const.ACCOUNTS_PKG_URL}plan.php?content_id={$f.account_id}">{$f.account|escape}</a></td>
+							<td>{$f.description|escape}{if $f.via == 'paypal'} <small>(PayPal)</small>{/if}</td>
+							<td class="text-right">{$f.out}</td><td class="text-right">{$f.in}</td><td class="text-right">{$f.balance}</td>
+						</tr>
+					{/foreach}
+				</tbody>
+			</table>
+		{else}
+			<p>{tr}Nothing planned in this period. Add planned lines from an account's Planned page.{/tr}</p>
+		{/if}
+		<h2>{tr}Accounts{/tr}</h2>
 		{if $accounts}
 			<table class="table table-condensed table-striped">
 				<thead>

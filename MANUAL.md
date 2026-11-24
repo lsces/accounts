@@ -91,3 +91,13 @@ it into the same CSV the business download gives: the type code, description row
 columns, and the amount is paid out, paid in or balance by which right-hand column it ends in. It also checks that the
 statement's opening balance plus its lines gives its closing balance. Each imported file is kept under
 `storage/accounts/archive/<account id>/` (a PDF with the text read from it beside it). A repeat import adds nothing.
+
+## Planned lines (the forecast)
+
+What is expected but has not happened yet is a `PLAN` row on the account it will hit: `start_date` is the next due date,
+`xkey` the signed amount, `xkey_ext` what it is, and the JSON holds the repeat rule (`weekly`, `2weekly`, `4weekly`,
+`monthly`), an optional last date, `via` (PayPal) and a note. `plan.php` adds, changes, marks done and removes them.
+Marking a repeating line done moves it to its next date; a one-off is archived. The rows are kept (end-dated), not
+deleted. Planned lines are never counted as income or expense. The front page lists the next 28 days across the bank
+accounts, a repeating line once per occurrence, with the combined balance carried on from the statements, and shows
+anything overdue first.
