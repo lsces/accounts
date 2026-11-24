@@ -24,7 +24,7 @@ if( !$gContent->isValid() ) {
 	$gBitSystem->fatalError( KernelTools::tra( 'No valid account specified.' ) );
 }
 
-const STATEMENT_PAGE_SIZE = 50;
+const STATEMENT_PAGE_SIZE = 20;
 
 $all = $gContent->getStatementLines( $gBitUser->getUserTimezone() );
 $taxYears = array_values( array_unique( array_column( $all, 'taxYear' ) ) );
