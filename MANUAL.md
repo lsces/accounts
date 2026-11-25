@@ -36,7 +36,7 @@ selector shows one year; the balance shown is still the true running balance. Ta
 
 Open the account, then use the **Import statements** icon (down arrow, top right).
 
-1. Choose one or more files: the bank business statements as **CSV**, personal statements as **PDF**.
+1. Choose one or more files: business statements as **CSV**, personal statements as **PDF**.
 2. **Preview** shows how many lines are new and how many are already held, and whether the printed
    balances on the statement agree with the lines. Types the package does not know are filed as
    *Other bank transaction*.
@@ -68,7 +68,7 @@ On an account's page, each line has a **Set** (or **Change**) button:
 How matching works: capitals do not matter; if several texts match one line the longest wins; without
 Replace a line that already has a supplier is never changed, so a choice you made by hand stays.
 
-Cash withdrawals are best given a *Cash* contact with the text `CASH the bank`. Anything business that is
+Cash withdrawals are best given a *Cash* contact with the text that starts every cash-machine line on your statement (for example `CASH`). Anything business that is
 bought with cash will not be traceable, so pay for business items by card.
 
 Statement text is also kept on the contact itself (Statement text entries on its page).

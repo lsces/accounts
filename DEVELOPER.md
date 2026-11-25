@@ -15,7 +15,7 @@ An account is its own content type, a pure `liberty_content` record whose title 
 
 | Class | guid | Holds |
 |---|---|---|
-| `AccountsAccount` | `accountsaccount` | bank account: the bank Type items, statement import |
+| `AccountsAccount` | `accountsaccount` | bank account: the bank's Type items, statement import |
 | `AccountsRent` | `accountsrent` | tenancy ledger (RENT, HB, PAY); not cash in hand |
 | `AccountsPaypal` | `accountspaypal` | PP_SALE, PP_PAYOUT, PP_OTHER; bank is master. Type exists, no importer yet |
 
