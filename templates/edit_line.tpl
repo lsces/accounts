@@ -24,7 +24,7 @@
 						<input type="text" class="form-control" id="link_search" autocomplete="off" value="{$line.supplier|escape}" placeholder="{tr}Type to search…{/tr}" />
 						<ul id="link_dropdown" class="dropdown-menu col-xs-12 pre-scrollable"></ul>
 					</div>
-					{formhelp note="Who this was paid to or received from: any business contact. Business suppliers may be paid from the personal account and the other way round."}
+					{formhelp note="Who this was paid to or received from: any business or person contact. Business suppliers may be paid from the personal account and the other way round."}
 				{/forminput}
 			</div>
 			<div class="form-group">
@@ -53,7 +53,7 @@
 			dropdown:    '#link_dropdown',
 			idField:     '#supplier_id',
 			lookupUrl:   '{$smarty.const.CONTACT_PKG_URL}includes/lookup_contact.php',
-			extraParams: function() { return { type: 'contactbusiness' }; },
+			extraParams: function() { return {}; },
 			label:       function(row) { return row.title + (row.scref ? ' (' + row.scref + ')' : ''); }
 		});
 		// Typing again after a pick starts a new search: drop the old choice so a half-typed name is never saved as it.

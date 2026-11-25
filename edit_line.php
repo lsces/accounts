@@ -1,6 +1,6 @@
 <?php
 /**
- * One statement line: set who it was paid to or received from. The supplier is a business contact, picked with
+ * One statement line: set who it was paid to or received from. The supplier is a business or person contact, picked with
  * the same search as an account's own contact; only the line's xref column is written, so the import key, amount
  * and description stay as imported. Any business can be chosen on any account (personal accounts pay business
  * suppliers and the other way round).
@@ -33,8 +33,8 @@ $back = ACCOUNTS_PKG_URL.'view_account.php?content_id='.$gContent->mContentId.( 
 
 if( isset( $_REQUEST['save'] ) || isset( $_REQUEST['clear'] ) ) {
 	$contactId = isset( $_REQUEST['clear'] ) ? 0 : (int)( $_REQUEST['supplier_id'] ?? 0 );
-	if( $contactId > 0 && !$gContent->mDb->getOne( "SELECT COUNT(*) FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ? AND `content_type_guid` = 'contactbusiness'", [ $contactId ] ) ) {
-		$gBitSmarty->assign( 'errors', [ KernelTools::tra( 'Pick a business from the list.' ) ] );
+	if( $contactId > 0 && !$gContent->mDb->getOne( "SELECT COUNT(*) FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ? AND `content_type_guid` IN ('contactbusiness','contactperson')", [ $contactId ] ) ) {
+		$gBitSmarty->assign( 'errors', [ KernelTools::tra( 'Pick a contact from the list.' ) ] );
 	} elseif( $gContent->setLineSupplier( $line['xref_id'], $contactId ) ) {
 		// Fill forward: remember the text against the supplier and link every other unset line that holds it.
 		$filled = 0;

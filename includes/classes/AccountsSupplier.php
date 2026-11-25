@@ -1,6 +1,6 @@
 <?php
 /**
- * Linking statement lines to their supplier. A business contact carries one or more STMT rows: pieces of bank
+ * Linking statement lines to their supplier. A business or person contact carries one or more STMT rows: pieces of bank
  * statement wording ("Acmehost", "EXAMPLE TELECOM", "PAYPAL"). Any statement line whose description contains the
  * text, and has no supplier yet, is linked to that contact - when a rule is added (fill forward over what is
  * already loaded) and after every import. A line that already has a supplier is never changed, so a hand-set
@@ -18,7 +18,8 @@ class AccountsSupplier {
 	/**
 	 * A first guess at the text to match from a line's description: the words up to the first one that holds a digit
 	 * or an asterisk, i.e. before the invoice number, phone number or reference. "Acmehost INV123" gives
-	 * "Acmehost"; "PAYPAL * SOME SHOP 0123456789" gives "PAYPAL". The person edits it before saving.
+	 * "Acmehost"; "PAYPAL * SOME SHOP 0123456789" gives "PAYPAL". A description that starts with a number (a transfer
+	 * to an account number) is suggested whole. The person edits it before saving.
 	 */
 	public static function suggest( string $pDescription ): string {
 		$words = [];
@@ -28,7 +29,7 @@ class AccountsSupplier {
 			}
 			$words[] = $w;
 		}
-		return $words ? implode( ' ', $words ) : (string)( preg_split( '/\s+/', trim( $pDescription ) )[0] ?? '' );
+		return $words ? implode( ' ', $words ) : trim( html_entity_decode( $pDescription, ENT_QUOTES | ENT_HTML5 ) );
 	}
 
 	/** Every STMT rule: [ 'text' => string, 'contact_id' => int ], longest text first. */
@@ -36,7 +37,7 @@ class AccountsSupplier {
 		global $gBitDb;
 		$rs = $gBitDb->query(
 			"SELECT x.`xkey`, x.`content_id` FROM `".BIT_DB_PREFIX."liberty_xref` x
-				INNER JOIN `".BIT_DB_PREFIX."liberty_content` lc ON lc.`content_id` = x.`content_id` AND lc.`content_type_guid` = 'contactbusiness'
+				INNER JOIN `".BIT_DB_PREFIX."liberty_content` lc ON lc.`content_id` = x.`content_id` AND lc.`content_type_guid` IN ('contactbusiness','contactperson')
 				WHERE x.`item` = 'STMT' AND x.`end_date` IS NULL AND x.`xkey` IS NOT NULL"
 		);
 		$ret = [];
@@ -63,7 +64,7 @@ class AccountsSupplier {
 			}
 		}
 		$xref = new LibertyXref();
-		$xref->mContentTypeGuid = 'contactbusiness';
+		$xref->mContentTypeGuid = (string)$gBitDb->getOne( "SELECT `content_type_guid` FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ?", [ $pContactId ] );
 		$xref->mPackageGuid     = 'contact';
 		$hash = [
 			'content_id' => $pContactId,
