@@ -127,4 +127,8 @@ foreach( $lines as [ $guid, $item, $title, $sort ] ) {
 	$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('$item','$guid','transactions','$title',1,$sort,3,'','key-json-text','$hint')";
 }
 
+// STMT - statement wording on a business contact ("Acmehost", "PAYPAL"): xkey = the text, xkey_ext = a note. A statement line
+// whose description contains it is linked to that contact (see AccountsSupplier). Accounts adds it to the contact's own type.
+$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('STMT','contactbusiness','links','Statement text',1,10,3,'','key-json-text','[\"text\",\"note\"]')";
+
 $gBitInstaller->registerSchemaDefault( ACCOUNTS_PKG_NAME, array_merge( $xrefTypes, $xrefItems ) );

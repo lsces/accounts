@@ -72,6 +72,7 @@ $gBitSmarty->assign( 'contactLink', $gContent->getContactLink() );
 $gBitSmarty->assign( 'canUpdate',  $gBitUser->hasPermission( 'p_accounts_update' ) );
 $gBitSmarty->assign( 'canPlan',    !( $gContent instanceof AccountsPaypal ) && $gBitUser->hasPermission( 'p_accounts_update' ) );
 $gBitSmarty->assign( 'canImport',  $gContent::GUID === AccountsAccount::GUID && $gBitUser->hasPermission( 'p_accounts_create' ) );
+$gBitSmarty->assign( 'filled',     (int)( $_REQUEST['filled'] ?? 0 ) );
 $gBitSmarty->assign( 'rows',       $rows );
 $gBitSmarty->assign( 'total',      $total );
 $gBitSmarty->assign( 'page',       $page );

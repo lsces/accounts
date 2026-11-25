@@ -36,7 +36,13 @@ if( isset( $_REQUEST['save'] ) || isset( $_REQUEST['clear'] ) ) {
 	if( $contactId > 0 && !$gContent->mDb->getOne( "SELECT COUNT(*) FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ? AND `content_type_guid` = 'contactbusiness'", [ $contactId ] ) ) {
 		$gBitSmarty->assign( 'errors', [ KernelTools::tra( 'Pick a business from the list.' ) ] );
 	} elseif( $gContent->setLineSupplier( $line['xref_id'], $contactId ) ) {
-		header( 'Location: '.$back );
+		// Fill forward: remember the text against the supplier and link every other unset line that holds it.
+		$filled = 0;
+		$text = trim( (string)( $_REQUEST['match_text'] ?? '' ) );
+		if( $contactId > 0 && $text !== '' && !empty( $_REQUEST['fill'] ) && AccountsSupplier::addRule( $contactId, $text ) ) {
+			$filled = AccountsSupplier::fill();
+		}
+		header( 'Location: '.$back.( $filled ? '&filled='.$filled : '' ) );
 		exit;
 	} else {
 		$gBitSmarty->assign( 'errors', [ KernelTools::tra( 'The line could not be saved.' ) ] );
@@ -46,6 +52,7 @@ if( isset( $_REQUEST['save'] ) || isset( $_REQUEST['clear'] ) ) {
 $tz = $gBitUser->getUserTimezone();
 $line['dateText'] = ( new \DateTime( '@'.$line['date'] ) )->setTimezone( $tz )->format( 'D j M Y' );
 $line['amountText'] = number_format( (float)$line['amount'], 2 );
+$line['suggest'] = AccountsSupplier::suggest( $line['desc'] );
 
 $gBitSmarty->assign( 'gContent', $gContent );
 $gBitSmarty->assign( 'line', $line );

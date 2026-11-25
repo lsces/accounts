@@ -27,6 +27,14 @@
 					{formhelp note="Who this was paid to or received from: any business contact. Business suppliers may be paid from the personal account and the other way round."}
 				{/forminput}
 			</div>
+			<div class="form-group">
+				{formlabel label="Statement text" for="match_text"}
+				{forminput}
+					<input type="text" class="form-control" name="match_text" id="match_text" value="{$line.suggest|escape}" />
+					<label><input type="checkbox" name="fill" value="1" checked="checked" /> {tr}Fill forward: link every other line with no supplier whose description contains this text, and remember it for future imports{/tr}</label>
+					{formhelp note="Trim it to the part that is the same every time, without invoice numbers: for example Acmehost, or PAYPAL to catch both PAYPAL PAYMENT and PAYPAL * SOME SHOP. Matching ignores case. A line that already has a supplier is never changed."}
+				{/forminput}
+			</div>
 			<div class="form-group submit">
 				<input type="submit" class="btn btn-primary" name="save" value="{tr}Save{/tr}" />
 				{if $line.supplier_id}<input type="submit" class="btn btn-default" name="clear" value="{tr}Clear supplier{/tr}" />{/if}

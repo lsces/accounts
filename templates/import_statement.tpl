@@ -6,7 +6,7 @@
 	<div class="body">
 		{formfeedback error=$errors}
 		{if $result}
-			<p class="alert alert-success">{tr}Added{/tr} {$result.added} {tr}transactions{/tr}{if $result.failed}, {$result.failed} {tr}failed{/tr}{/if}.{if $result.opening !== null} {tr}Opening balance set to{/tr} {$result.opening|escape}.{/if} <a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$gContent->mContentId}">{tr}View the statement{/tr}</a></p>
+			<p class="alert alert-success">{tr}Added{/tr} {$result.added} {tr}transactions{/tr}{if $result.failed}, {$result.failed} {tr}failed{/tr}{/if}.{if $result.linked} {$result.linked} {tr}linked to suppliers{/tr}.{/if}{if $result.opening !== null} {tr}Opening balance set to{/tr} {$result.opening|escape}.{/if} <a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$gContent->mContentId}">{tr}View the statement{/tr}</a></p>
 		{/if}
 
 		{if $lines}

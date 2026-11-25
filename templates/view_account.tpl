@@ -12,6 +12,7 @@
 		{/if}
 	</div>
 	<div class="body">
+		{if $filled}<p class="alert alert-success">{$filled} {tr}more lines linked to suppliers{/tr}.</p>{/if}
 		<form method="get" action="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php" class="form-inline">
 			<input type="hidden" name="content_id" value="{$gContent->mContentId}" />
 			<label for="ty">{tr}Tax year{/tr}</label>

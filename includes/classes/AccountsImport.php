@@ -182,6 +182,8 @@ class AccountsImport {
 				$errors = array_merge( $errors, array_map( 'strval', $xref->mErrors ) );
 			}
 		}
-		return [ 'added' => $added, 'failed' => $failed, 'errors' => array_values( array_unique( $errors ) ) ];
+		// Link the new lines to suppliers the contacts' statement text already recognises.
+		$linked = $added ? AccountsSupplier::fill( (int)$pAccount->mContentId ) : 0;
+		return [ 'added' => $added, 'failed' => $failed, 'linked' => $linked, 'errors' => array_values( array_unique( $errors ) ) ];
 	}
 }
