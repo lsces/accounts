@@ -119,3 +119,11 @@ An account is one of three content types, chosen when it is created and not chan
 payout items) and a rent account (`accountsrent`: the tenancy ledger items RENT, HB and PAY, not cash in hand). Each kind
 has only its own items, so none is offered another's. The rent account's payments are the other side of a bank
 account's direct debits to the landlord, and the two are kept as separate ledgers that run in parallel.
+
+### Suppliers
+
+A statement line's `xref` column holds the business contact it was paid to or received from. On the statement
+view each line has a Set / Change button (needs update permission) opening `edit_line.php`: a search over business
+contacts, with Clear to remove it. Any business can be picked on any account, since personal accounts pay business
+suppliers and the other way round; the contact's own types (Business supplier, Household supplier, Bank) are for
+filtering and reports, not for restricting the picker. Only the `xref` column is written.

@@ -27,12 +27,13 @@
 		{if $rows}
 			<table class="table table-condensed table-striped">
 				<thead>
-					<tr><th>{tr}Date{/tr}</th><th>{tr}Type{/tr}</th><th>{tr}Description{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Balance{/tr}</th></tr>
+					<tr><th>{tr}Date{/tr}</th><th>{tr}Type{/tr}</th><th>{tr}Description{/tr}</th><th>{tr}Supplier{/tr}</th><th class="text-right">{tr}Paid out{/tr}</th><th class="text-right">{tr}Paid in{/tr}</th><th class="text-right">{tr}Balance{/tr}</th></tr>
 				</thead>
 				<tbody>
 					{foreach $rows as $r}
 						<tr>
 							<td>{$r.date|escape}</td><td>{$r.item|escape}</td><td>{$r.desc|escape}</td>
+							<td>{if $r.supplier_id}<a href="{$smarty.const.BIT_ROOT_URL}index.php?content_id={$r.supplier_id}">{$r.supplier|escape}</a>{/if}{if $canUpdate} <a class="btn btn-default btn-xs" title="{tr}Set supplier{/tr}" href="{$smarty.const.ACCOUNTS_PKG_URL}edit_line.php?content_id={$gContent->mContentId}&amp;xref_id={$r.xref_id}&amp;ty={$ty|escape:'url'}&amp;page={$page}">{if $r.supplier_id}{tr}Change{/tr}{else}{tr}Set{/tr}{/if}</a>{/if}</td>
 							<td class="text-right">{$r.out}</td><td class="text-right">{$r.in}</td><td class="text-right">{$r.balance}</td>
 						</tr>
 					{/foreach}

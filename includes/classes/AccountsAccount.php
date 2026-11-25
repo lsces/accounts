@@ -31,7 +31,7 @@ class AccountsAccount extends LibertyContent {
 	public static function loadFor( $pContentId ): AccountsAccount {
 		global $gBitDb;
 		$guid = $pContentId ? $gBitDb->getOne( "SELECT `content_type_guid` FROM `".BIT_DB_PREFIX."liberty_content` WHERE `content_id` = ?", [ (int)$pContentId ] ) : null;
-		$class = [ AccountsPaypal::GUID => AccountsPaypal::class, AccountsRent::GUID => AccountsRent::class ][$guid] ?? AccountsAccount::class;
+		$class = [ AccountsPaypal::GUID => AccountsPaypal::class, AccountsRent::GUID => AccountsRent::class ][(string)$guid] ?? AccountsAccount::class;
 		return new $class( null, (int)$pContentId );
 	}
 
@@ -340,15 +340,17 @@ class AccountsAccount extends LibertyContent {
 	 * Every statement line on the account in date order (then the order they were imported), each with its
 	 * running balance from the opening balance.
 	 *
-	 * @return array<int,array>  date (Y-m-d), epoch, item, desc, amount, out, in, balance, taxYear ('2025-26')
+	 * @return array<int,array>  date (Y-m-d), epoch, item, desc, amount, out, in, balance, taxYear ('2025-26'), supplier_id / supplier (the contact paid or received from, 0 / '' if not set)
 	 */
 	public function getStatementLines( \DateTimeZone $pTz ): array {
 		$opening = $this->getOpening();
 		$balance = $opening ? (string)$opening['amount'] : '0';
 		$rs = $this->mDb->query(
-			"SELECT `xref_id`, `item`, `start_date`, `xkey`, `data` FROM `".BIT_DB_PREFIX."liberty_xref`
-				WHERE `content_id` = ? AND `item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE') AND `end_date` IS NULL
-				ORDER BY `start_date`, `xorder`, `xref_id`",
+			"SELECT x.`xref_id`, x.`item`, x.`start_date`, x.`xkey`, x.`data`, x.`xref`, lc.`title` AS `supplier`
+				FROM `".BIT_DB_PREFIX."liberty_xref` x
+					LEFT JOIN `".BIT_DB_PREFIX."liberty_content` lc ON lc.`content_id` = x.`xref` AND x.`xref` > 0
+				WHERE x.`content_id` = ? AND x.`item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE') AND x.`end_date` IS NULL
+				ORDER BY x.`start_date`, x.`xorder`, x.`xref_id`",
 			[ (int)$this->mContentId ]
 		);
 		$ret = [];
@@ -370,9 +372,45 @@ class AccountsAccount extends LibertyContent {
 				'in'      => bccomp( $amount, '0', 2 ) > 0 ? $amount : '',
 				'balance' => $balance,
 				'taxYear' => $startYear.'-'.substr( (string)( $startYear + 1 ), 2 ),
+				'supplier_id' => (int)$r['xref'],
+				'supplier'    => (string)$r['supplier'],
 			];
 		}
 		return $ret;
+	}
+
+	/**
+	 * One statement line of this account (not a CONTACT / OPENING / PLAN / BALANCE row), with its supplier.
+	 *
+	 * @return array|null  xref_id, item, date (epoch), amount, desc, supplier_id, supplier
+	 */
+	public function getLine( int $pXrefId ): ?array {
+		$r = $this->mDb->getRow(
+			"SELECT x.`xref_id`, x.`item`, x.`start_date`, x.`xkey`, x.`data`, x.`xref`, lc.`title` AS `supplier`
+				FROM `".BIT_DB_PREFIX."liberty_xref` x
+					LEFT JOIN `".BIT_DB_PREFIX."liberty_content` lc ON lc.`content_id` = x.`xref` AND x.`xref` > 0
+				WHERE x.`xref_id` = ? AND x.`content_id` = ? AND x.`item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE')",
+			[ $pXrefId, (int)$this->mContentId ]
+		);
+		if( !$r ) {
+			return null;
+		}
+		$data = !empty( $r['data'] ) ? ( json_decode( $r['data'], true ) ?: [] ) : [];
+		return [ 'xref_id' => (int)$r['xref_id'], 'item' => $r['item'], 'date' => (int)$r['start_date'],
+			'amount' => bcadd( (string)$r['xkey'], '0', 2 ), 'desc' => (string)( $data['description'] ?? '' ),
+			'supplier_id' => (int)$r['xref'], 'supplier' => (string)$r['supplier'] ];
+	}
+
+	/**
+	 * Sets (or with 0 clears) who a statement line was paid to or received from: the contact's content_id goes in the
+	 * row's xref column. Only that column is written; the import key, amount and description are left as they are.
+	 */
+	public function setLineSupplier( int $pXrefId, int $pContactId ): bool {
+		$line = $this->getLine( $pXrefId );
+		if( !$line ) {
+			return false;
+		}
+		return $this->storeRow( [ 'xref_id' => $pXrefId, 'content_id' => (int)$this->mContentId, 'item' => $line['item'], 'xref' => $pContactId ] );
 	}
 
 	/**
