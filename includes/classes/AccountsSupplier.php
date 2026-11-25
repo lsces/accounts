@@ -29,7 +29,8 @@ class AccountsSupplier {
 			}
 			$words[] = $w;
 		}
-		return $words ? implode( ' ', $words ) : trim( html_entity_decode( $pDescription, ENT_QUOTES | ENT_HTML5 ) );
+		// a dash or comma left hanging before the reference ('B&M - 10596') is not part of the name
+		return $words ? rtrim( implode( ' ', $words ), ' -,:;/' ) : trim( html_entity_decode( $pDescription, ENT_QUOTES | ENT_HTML5 ) );
 	}
 
 	/** Every STMT rule: [ 'text' => string, 'contact_id' => int ], longest text first. */
