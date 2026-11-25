@@ -127,3 +127,5 @@ view each line has a Set / Change button (needs update permission) opening `edit
 contacts, with Clear to remove it. Any business can be picked on any account, since personal accounts pay business
 suppliers and the other way round; the contact's own types (Business supplier, Household supplier, Bank) are for
 filtering and reports, not for restricting the picker. Only the `xref` column is written.
+
+Tick **Replace** beside Fill forward to also move lines that already have a different supplier (including ones set by hand) when their description contains the text: for example, to take a pay-later provider instalments off a shop, give the instalment provider's contact the text `PAYLATER` and tick Replace. Lines already on that supplier are left alone.

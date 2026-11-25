@@ -32,6 +32,7 @@
 				{forminput}
 					<input type="text" class="form-control" name="match_text" id="match_text" value="{$line.suggest|escape}" />
 					<label><input type="checkbox" name="fill" value="1" checked="checked" /> {tr}Fill forward: link every other line with no supplier whose description contains this text, and remember it for future imports{/tr}</label>
+					<label><input type="checkbox" name="replace" value="1" /> {tr}Replace: also move lines that already have a different supplier (including ones set by hand) when they contain this text{/tr}</label>
 					{formhelp note="Trim it to the part that is the same every time, without invoice numbers: for example Acmehost, or PAYPAL to catch both PAYPAL PAYMENT and PAYPAL * SOME SHOP. Matching ignores case. A line that already has a supplier is never changed."}
 				{/forminput}
 			</div>

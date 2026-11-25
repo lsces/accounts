@@ -39,8 +39,10 @@ if( isset( $_REQUEST['save'] ) || isset( $_REQUEST['clear'] ) ) {
 		// Fill forward: remember the text against the supplier and link every other unset line that holds it.
 		$filled = 0;
 		$text = trim( (string)( $_REQUEST['match_text'] ?? '' ) );
-		if( $contactId > 0 && $text !== '' && !empty( $_REQUEST['fill'] ) && AccountsSupplier::addRule( $contactId, $text ) ) {
-			$filled = AccountsSupplier::fill();
+		if( $contactId > 0 && $text !== '' && ( !empty( $_REQUEST['fill'] ) || !empty( $_REQUEST['replace'] ) ) && AccountsSupplier::addRule( $contactId, $text ) ) {
+			$filled = !empty( $_REQUEST['replace'] )
+				? AccountsSupplier::fill( null, [ [ 'text' => $text, 'contact_id' => $contactId ] ], true )
+				: AccountsSupplier::fill();
 		}
 		header( 'Location: '.$back.( $filled ? '&filled='.$filled : '' ) );
 		exit;

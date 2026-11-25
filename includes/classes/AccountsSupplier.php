@@ -77,21 +77,24 @@ class AccountsSupplier {
 	/**
 	 * Links every unset statement line, on all accounts or on one, whose description holds a rule's text.
 	 *
-	 * @param int|null $pAccountId  limit to one account (content_id), or null for every account
+	 * @param int|null   $pAccountId  limit to one account (content_id), or null for every account
+	 * @param array|null $pRules      only these rules ([ 'text', 'contact_id' ]) instead of all of them
+	 * @param bool       $pReplace    also re-link lines that already have a different supplier (a hand-set one too);
+	 *                                lines already on the rule's contact are left alone
 	 * @return int  lines linked
 	 */
-	public static function fill( ?int $pAccountId = null ): int {
+	public static function fill( ?int $pAccountId = null, ?array $pRules = null, bool $pReplace = false ): int {
 		global $gBitDb;
-		$rules = self::rules();
+		$rules = $pRules ?? self::rules();
 		if( !$rules ) {
 			return 0;
 		}
-		$sql = "SELECT x.`xref_id`, x.`content_id`, x.`item`, x.`data`, lc.`content_type_guid`
+		$sql = "SELECT x.`xref_id`, x.`content_id`, x.`item`, x.`data`, x.`xref`, lc.`content_type_guid`
 			FROM `".BIT_DB_PREFIX."liberty_xref` x
 				INNER JOIN `".BIT_DB_PREFIX."liberty_content` lc ON lc.`content_id` = x.`content_id`
 			WHERE lc.`content_type_guid` IN ('accountsaccount','accountspaypal','accountsrent')
-				AND x.`item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE') AND x.`end_date` IS NULL
-				AND ( x.`xref` IS NULL OR x.`xref` = 0 )";
+				AND x.`item` NOT IN ('CONTACT','OPENING','PLAN','BALANCE') AND x.`end_date` IS NULL"
+			.( $pReplace ? '' : " AND ( x.`xref` IS NULL OR x.`xref` = 0 )" );
 		$bind = [];
 		if( $pAccountId !== null ) {
 			$sql .= " AND x.`content_id` = ?";
@@ -104,7 +107,9 @@ class AccountsSupplier {
 			$desc = html_entity_decode( (string)( $data['description'] ?? '' ), ENT_QUOTES | ENT_HTML5 );
 			foreach( $rules as $rule ) {
 				if( stripos( $desc, $rule['text'] ) !== false ) {
-					$todo[] = [ $r, $rule['contact_id'] ];
+					if( (int)$r['xref'] !== $rule['contact_id'] ) {
+						$todo[] = [ $r, $rule['contact_id'] ];
+					}
 					break;
 				}
 			}
