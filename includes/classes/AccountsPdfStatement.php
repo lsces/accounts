@@ -147,7 +147,7 @@ class AccountsPdfStatement {
 			$words = [];
 			if( preg_match_all( '/<word xMin="([\d.]+)" yMin="([\d.]+)" xMax="([\d.]+)" yMax="[\d.]+">([^<]*)<\/word>/', $page, $m, PREG_SET_ORDER ) ) {
 				foreach( $m as $w ) {
-					$words[] = [ 'x0' => (float)$w[1], 'y' => (float)$w[2], 'x1' => (float)$w[3], 'w' => html_entity_decode( $w[4] ) ];
+					$words[] = [ 'x0' => (float)$w[1], 'y' => (float)$w[2], 'x1' => (float)$w[3], 'w' => html_entity_decode( $w[4], ENT_QUOTES | ENT_HTML5 ) ];
 				}
 			}
 			usort( $words, fn( $a, $b ) => $a['y'] <=> $b['y'] ?: $a['x0'] <=> $b['x0'] );
