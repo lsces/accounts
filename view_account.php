@@ -38,7 +38,8 @@ $lines = $ty === '' ? $all : array_values( array_filter( $all, fn( $l ) => $l['t
 $lines = array_reverse( $lines );   // newest first; each line keeps the balance it was computed with, oldest to newest
 $total = count( $lines );
 $pages = max( 1, (int)ceil( $total / STATEMENT_PAGE_SIZE ) );
-$page = min( $pages, max( 1, (int)( $_REQUEST['page'] ?? 1 ) ) );
+// The standard {pagination} bar links with page=N and its Go-to-page box posts list_page=N.
+$page = min( $pages, max( 1, (int)( $_REQUEST['list_page'] ?? $_REQUEST['page'] ?? 1 ) ) );
 $rows = array_slice( $lines, ( $page - 1 ) * STATEMENT_PAGE_SIZE, STATEMENT_PAGE_SIZE );
 
 $opening = $gContent->getOpening();
@@ -77,6 +78,10 @@ $gBitSmarty->assign( 'rows',       $rows );
 $gBitSmarty->assign( 'total',      $total );
 $gBitSmarty->assign( 'page',       $page );
 $gBitSmarty->assign( 'pages',      $pages );
+$listHash = [ 'max_records' => STATEMENT_PAGE_SIZE, 'cant' => $total, 'offset' => ( $page - 1 ) * STATEMENT_PAGE_SIZE, 'find' => '', 'page' => $page ];
+\Bitweaver\BitBase::postGetList( $listHash );
+$listHash['listInfo']['parameters'] = [ 'content_id' => $gContent->mContentId, 'ty' => $ty ];
+$gBitSmarty->assign( 'listInfo',   $listHash['listInfo'] );
 $gBitSmarty->assign( 'taxYears',   $taxYears );
 $gBitSmarty->assign( 'ty',         $ty );
 $gBitSmarty->assign( 'opening',    $opening ? number_format( (float)$opening['amount'], 2 ) : null );

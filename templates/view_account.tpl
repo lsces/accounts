@@ -40,13 +40,7 @@
 					{/foreach}
 				</tbody>
 			</table>
-			{if $pages > 1}
-				<ul class="pagination">
-					{section name=p start=1 loop=$pages+1}
-						<li{if $smarty.section.p.index == $page} class="active"{/if}><a href="{$smarty.const.ACCOUNTS_PKG_URL}view_account.php?content_id={$gContent->mContentId}&amp;ty={$ty|escape:'url'}&amp;page={$smarty.section.p.index}">{$smarty.section.p.index}</a></li>
-					{/section}
-				</ul>
-			{/if}
+			{pagination}
 		{else}
 			<p>{tr}No transactions yet.{/tr}</p>
 		{/if}
