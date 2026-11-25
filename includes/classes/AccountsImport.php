@@ -1,7 +1,7 @@
 <?php
 /**
  * Statement import for a bank account. The bank is the master record, so every statement line becomes
- * one xref row on the account, its item the bank's own Type code (see MANUAL.md). Importing is safe to
+ * one xref row on the account, its item the bank's own Type code (see DEVELOPER.md). Importing is safe to
  * repeat: each line carries an import key (hash of date, amount, type, description and its n-th
  * occurrence in the file), and a key already on the account is skipped, so overlapping statements and a
  * second run of the same file add nothing.

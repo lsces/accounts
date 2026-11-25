@@ -5,7 +5,7 @@
  * (content_type_guid='accountsaccount'), title = the account's own name; content_id is the only
  * identifier. The Contact record for the bank or service holding the account is linked to it
  * with a CONTACT xref row and supplies the extra detail (sort code, number, addresses) — see
- * this package's MANUAL.md.
+ * this package's DEVELOPER.md.
  *
  * @package accounts
  */

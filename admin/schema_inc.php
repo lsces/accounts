@@ -4,7 +4,7 @@
 // the account's name, content_id the only identifier, same shape as health's HealthDay). The
 // Contact record for the bank or service holding it is linked with a CONTACT xref row and
 // supplies the extra detail; every statement line is an xref row on the account, its item the line's type (DD, BP...). No tables of
-// its own. See MANUAL.md for the column-by-column layout of a statement line.
+// its own. See DEVELOPER.md for the column-by-column layout of a statement line.
 //
 // Unlike the device-sourced health items (multiple=-1, read-only), statement-line rows are edited by
 // hand (treatment, counterparty, notes), so the item is multiple=1: many rows per account,
@@ -64,7 +64,7 @@ $xrefItems = [];
 
 // The package carries the whole vocabulary a working install needs: the link from an account to its contact
 // record, the statement-line types for each account kind, OPENING / PLAN / BALANCE. A site's own additions
-// belong in a local scheme (config/local/xref_schemes/), not here. See MANUAL.md for the row layout.
+// belong in a local scheme (config/local/xref_schemes/), not here. See DEVELOPER.md for the row layout.
 foreach( [ 'accountsaccount', 'accountspaypal', 'accountsrent' ] as $guid ) {
 	$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('general','$guid','General',1,3,'','')";
 
@@ -100,7 +100,7 @@ foreach( [ 'accountsaccount', 'accountsrent' ] as $guid ) {
 // Bank lines use the bank's own Type column (business and personal accounts share it); the rent account (its own
 // type) has rent charged, housing benefit and the tenant's payments; PayPal (bank is master) holds only sales
 // and where that money went. Row layout (xkey = signed amount, xkey_ext = import key, xref = counterparty
-// contact, data json): MANUAL.md. Item codes are C(20).
+// contact, data json): DEVELOPER.md. Item codes are C(20).
 $hint = '["amount","import_key","code","description","balance","treatment","claim","source","note","gross","fee","net","status"]';
 foreach( [ 'accountsaccount', 'accountsrent', 'accountspaypal' ] as $guid ) {
 	$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('transactions','$guid','Transactions',2,3,'','')";

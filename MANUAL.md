@@ -1,131 +1,99 @@
-# accounts — intended shape
+# Accounts — user guide
 
-Skeleton stage: nothing below is built yet. This records the design the package is being built to,
-so the first real commits have something to be checked against.
+A light ledger for a sole trader's self-assessment: load your bank statements, say who each payment
+went to, and see what is coming up. Cash basis (money counted when it moves), no VAT, no payroll, no
+invoicing. For how it is built, see `DEVELOPER.md`.
 
-## Scope
+Everything needs a login. By default only an administrator can see or change anything.
 
-Single-entry, sole-trader bookkeeping for a self-assessment return. Not double-entry, no VAT, no
-payroll, no company accounts. Invoicing is out of scope for the first build.
+## Accounts
 
-## Content model
+The front page (**Accounts** in the menu) shows, from top to bottom:
 
-**An account is its own content type** (`AccountsAccount`, a pure `liberty_content` record whose
-title is the account's name — the same shape as `health`'s day object). The **Contact** record for
-the bank or service holding the account is linked to it with a `CONTACT` xref row and supplies the
-extra detail (sort code, number, addresses); none of that is kept on the account. `edit_account.php`
-creates an account and sets the link.
+- **Next 28 days** — the planned payments and receipts across your bank accounts, with a running balance.
+  Anything overdue is first and shaded. The foot gives total paid out, total paid in and what is spare.
+- **Balances** — each account's balance, and where it came from (last statement line, a balance you noted,
+  or the opening balance). To correct it from your bank's app, type the figure in the box and **Save balances**.
+- **Accounts** — every account with its kind, bank contact and number of lines.
 
-Every statement line is a `liberty_xref` row on the account (`multiple=1`, many rows, editable), and
-the row's item is the line's type. That vocabulary is part of the package
-install (`admin/schema_inc.php`), so a clean install is complete with no further steps; a site's own
-extra types go in a local scheme (`config/local/xref_schemes/`, applied from liberty's Local Scheme page). For bank accounts it is the bank's own Type
-column, shared by business and personal accounts: `DD` direct debit, `BP` bill payment, `CR` credit,
-`VIS` Visa debit, `CTL` contactless, `DR` debit/charges, `TFR` transfer, `ATM` cash, `BANK_OTHER` for
-anything new. PayPal is its own account type (`AccountsPaypal`, guid `accountspaypal`, same record shape) so it carries its own tabs and tools and a bank account never shows them; the kind is chosen when the account is created. The bank is the master record: PayPal holds only the few sales (`PP_SALE`) and where that
-money went (`PP_PAYOUT`), not the purchases it funded from the bank. The direction of money is the sign
-of the amount, never the type. The generic xref tab lists by item, so statement views give date order
-and a running balance. No tables of the package's own.
+**New account** asks for:
+- *Kind* — **Bank or other account**, **Rent account (tenancy ledger)** or **PayPal**. It cannot be changed
+  later, because each kind has its own types of line.
+- *Name*.
+- *Contact* — the bank or service holding it, picked from your contacts by typing.
+- *Opening balance* — the balance before the first line you load.
+- *Counts as cash* — untick for something that is not money in hand, such as a tenancy ledger, to keep it
+  out of the forecast.
 
-| Column | Holds |
-|---|---|
-| `content_id` | the account |
-| `start_date` | the transaction date; the tax year is derived from it |
-| `xkey` | signed amount, negative = paid out |
-| `xkey_ext` | import key: the payment service's transaction id, or a hash of date, amount, type and description |
-| `xref` | the counterparty, as a contact's content_id; null until matched |
-| `data` (json) | original type text, description, running balance, treatment, claim reference, source file, note; for a payment service also gross, fee, net and status |
+## Viewing an account
 
-An account is anything with a running balance, so a bank account, a payment-service account and a
-rent account are the same kind of thing; the balance simply rolls on across years.
+Three icons at the top right of an account page lead to **Planned lines** (calendar), **Import statements**
+(down arrow; bank accounts only) and **Edit** (pencil). The page lists every line, newest first, with date, type, description, supplier, money out, money in
+and the running balance, 20 to a page (use the page bar at the foot, or type a page number). A **tax year**
+selector shows one year; the balance shown is still the true running balance. Tax years run from 5 April.
 
-A main business account holds most eligible lines. A personal account contributes only lines that
-are entered because they are business items.
+## Loading statements
 
-**Treatment** says how a line counts: `income`, `expense`, `transfer` (between own accounts) or
-`not_claimed`. It is set per counterparty and carried onto that counterparty's other lines; a
-counterparty seen for the first time goes to a "needs a treatment" list. Reimbursements and the
-purchases behind them are reported gross (receipts as income, costs as expenses), on a cash basis.
+Open the account, then use the **Import statements** icon (down arrow, top right).
 
-## Pages
+1. Choose one or more files: the bank business statements as **CSV**, personal statements as **PDF**.
+2. **Preview** shows how many lines are new and how many are already held, and whether the printed
+   balances on the statement agree with the lines. Types the package does not know are filed as
+   *Other bank transaction*.
+3. **Import** adds the new lines. Loading the same statement twice adds nothing, so overlapping files are safe.
 
-- `index.php` — the accounts, with contact and transaction count.
-- `view_account.php` — one account: the contact link and the transactions, as liberty xref tabs.
-- `edit_account.php` — create or rename an account and pick its contact.
+Each file you import is kept (with the text read out of a PDF beside it), and listed at the foot of the
+import page. After an import, lines are linked to suppliers automatically where a rule already exists
+(see below), and the page tells you how many.
 
-Permissions `p_accounts_view/create/update/expunge/admin` are granted to `admin` only by default.
+## Suppliers
 
-## Tax year
+Each line can be linked to the contact it was paid to or came from. Any contact can be chosen on any
+account, because a personal account sometimes pays a business supplier and the other way round. People
+count too: a transfer to a family member is a person contact. Contact tags such as *Business supplier*
+and *Household supplier* are for sorting and reports; they do not limit who you can pick.
 
-The year runs from 5 April, matching the tax year, and is named for the year it ends in.
+On an account's page, each line has a **Set** (or **Change**) button:
 
-## Import
+1. Start typing the contact's name and pick it from the list. **Clear** removes a link.
+2. **Statement text** is filled in with a suggestion: the start of the description, before any invoice or
+   phone number. Edit it to the part that stays the same every time (`Acmehost`, not `Acmehost INV123`).
+3. With **Fill forward** ticked (the default), every other unlinked line containing that text is linked
+   too, and the text is remembered, so future imports link the same way.
+4. **Replace** also moves lines that already have a *different* supplier, including ones you set by hand.
+   Use it to correct a rule that was too broad: give the instalment provider the text `PAYLATER` and tick Replace to take
+   its lines off the shop they were first linked to. Lines already on that supplier are left alone.
+5. **Save** returns to the same page of the statement.
 
-- One importer per source layout (bank CSV; payment-service CSV, which has a transaction id).
-- Re-importing a statement must never duplicate a line. Where the source has no id, match on
-  date, amount, type and description.
-- A dry-run preview reports "N new, M already there" before anything is written.
-- A source that only comes as PDF is entered or keyed in, not parsed automatically.
+How matching works: capitals do not matter; if several texts match one line the longest wins; without
+Replace a line that already has a supplier is never changed, so a choice you made by hand stays.
 
-## Source material
+Cash withdrawals are best given a *Cash* contact with the text `CASH the bank`. Anything business that is
+bought with cash will not be traceable, so pay for business items by card.
 
-Every statement file (CSV and PDF) is kept, filed in a per-year folder in a fisheye gallery, so the
-ledger lines can always be traced back to the document they came from.
-
-## Reports
-
-A tax year's income and expenses, by counterparty and total, printable. It also lists every line
-still without a treatment, so nothing is dropped silently.
-
-## Checking it
-
-Import a year already done by hand and compare the totals against that year's own working before
-relying on the package for the current year.
-
-## Importing statements
-
-`import_statement.php` takes the business account's CSV downloads and the personal account's statement PDFs, previews
-them (new lines, lines already held, whether the printed balances reconcile) and imports on confirmation. A PDF has
-no table, only words at positions and one to three description rows per transaction, so `AccountsPdfStatement` reads
-it into the same CSV the business download gives: the type code, description rows and amount are placed by their
-columns, and the amount is paid out, paid in or balance by which right-hand column it ends in. It also checks that the
-statement's opening balance plus its lines gives its closing balance. Each imported file is kept under
-`storage/accounts/archive/<account id>/` (a PDF with the text read from it beside it). A repeat import adds nothing.
+Statement text is also kept on the contact itself (Statement text entries on its page).
 
 ## Planned lines (the forecast)
 
-What is expected but has not happened yet is a `PLAN` row on the account it will hit: `start_date` is the next due date,
-`xkey` the signed amount, `xkey_ext` what it is, and the JSON holds the repeat rule (`weekly`, `2weekly`, `4weekly`,
-`monthly`), an optional last date, `via` (PayPal) and a note. `plan.php` adds, changes, marks done and removes them.
-Marking a repeating line done moves it to its next date; a one-off is archived. The rows are kept (end-dated), not
-deleted. Planned lines are never counted as income or expense. The front page lists the next 28 days across the bank
-accounts, a repeating line once per occurrence, with the combined balance carried on from the statements, and shows
-anything overdue first.
+The **Planned lines** icon (calendar) on an account lists what is expected but has not happened. Each planned line has:
+- *Due* date, *What*, direction (**Paid out** or **Paid in**) and amount;
+- *Repeat* — once, weekly, every 2 or 4 weeks, monthly, every 6 months or yearly — and an optional last date;
+- *Working-day rule* — leave on its date, or pay the working day before or the next working day, for payments
+  that move for weekends and bank holidays (a Monday pension paid the Friday before when Monday is a bank
+  holiday). England and Wales holidays are known; a one-off extra holiday is not;
+- *Via* — direct from the account, or through PayPal; and a note.
 
-Between statements the only live figure is the bank's own app, so a balance can be noted by hand from the front page
-(`BALANCE` rows: the amount as at a date). The forecast starts from the newer of the last statement line and the latest
-noted balance, per account, and the front page shows the total paid out, total paid in and what is spare for the window.
+**Done** marks a line paid: a repeating line moves to its next date, a one-off is put away (not deleted).
+**Remove** deletes it from the forecast. Planned lines are never counted as income or expense.
 
-A planned line can carry a weekend / bank-holiday rule: `prev` pays it on the working day before (a pension that is
-always a Monday moves to the Friday, or earlier, when the Monday is a bank holiday), `next` on the working day after
-(a monthly payment that shuffles to Monday). The repeat keeps counting from the nominal date; only the day shown moves.
-England and Wales bank holidays are worked out from the rules (Easter, the Mondays in May and August, and the
-substitute days), so a one-off extra holiday is not known.
+## Rent accounts
 
-## Account kinds
+A rent account is a tenancy ledger: rent charged, housing benefit and payments made, rolling on year to
+year. It is kept separate from your bank accounts, whose direct debits to the landlord are the other side
+of it, and by default is not counted as cash.
 
-An account is one of three content types, chosen when it is created and not changeable: a bank account
-(`accountsaccount`: the bank's Type items, statement import), a PayPal account (`accountspaypal`: its own sales and
-payout items) and a rent account (`accountsrent`: the tenancy ledger items RENT, HB and PAY, not cash in hand). Each kind
-has only its own items, so none is offered another's. The rent account's payments are the other side of a bank
-account's direct debits to the landlord, and the two are kept as separate ledgers that run in parallel.
+## Not built yet
 
-### Suppliers
-
-A statement line's `xref` column holds the business contact it was paid to or received from. On the statement
-view each line has a Set / Change button (needs update permission) opening `edit_line.php`: a search over business
-contacts, with Clear to remove it. Any business can be picked on any account, since personal accounts pay business
-suppliers and the other way round; the contact's own types (Business supplier, Household supplier, Bank) are for
-filtering and reports, not for restricting the picker. Only the `xref` column is written.
-
-Tick **Replace** beside Fill forward to also move lines that already have a different supplier (including ones set by hand) when their description contains the text: for example, to take a pay-later provider instalments off a shop, give the instalment provider's contact the text `PAYLATER` and tick Replace. Lines already on that supplier are left alone.
+- PayPal statement import (the PayPal account kind exists).
+- Treatment of each line (income, expense, transfer, not claimed) and the year-end report for the return.
+- Matching planned lines to the bank lines that fulfil them.
