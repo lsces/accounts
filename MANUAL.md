@@ -17,9 +17,9 @@ extra detail (sort code, number, addresses); none of that is kept on the account
 creates an account and sets the link.
 
 Every statement line is a `liberty_xref` row on the account (`multiple=1`, many rows, editable), and
-the row's item is the line's type. That vocabulary is a site-local scheme
-(`config/local/xref_schemes/accounts.php`, applied from liberty's Local Scheme page), not part of the
-package install, which carries only the `CONTACT` link. For bank accounts it is the bank's own Type
+the row's item is the line's type. That vocabulary is part of the package
+install (`admin/schema_inc.php`), so a clean install is complete with no further steps; a site's own
+extra types go in a local scheme (`config/local/xref_schemes/`, applied from liberty's Local Scheme page). For bank accounts it is the bank's own Type
 column, shared by business and personal accounts: `DD` direct debit, `BP` bill payment, `CR` credit,
 `VIS` Visa debit, `CTL` contactless, `DR` debit/charges, `TFR` transfer, `ATM` cash, `BANK_OTHER` for
 anything new. PayPal is its own account type (`AccountsPaypal`, guid `accountspaypal`, same record shape) so it carries its own tabs and tools and a bank account never shows them; the kind is chosen when the account is created. The bank is the master record: PayPal holds only the few sales (`PP_SALE`) and where that

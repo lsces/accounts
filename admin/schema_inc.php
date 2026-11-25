@@ -62,11 +62,9 @@ $X = BIT_DB_PREFIX;
 $xrefTypes = [];
 $xrefItems = [];
 
-// The package carries only what every install needs: the link from an account to its contact record,
-// on both account types (bank and PayPal, which have their own content types so each gets its own tabs).
-// The statement-line vocabulary (the bank's Type codes, a payment service's types) is site-specific and
-// is a local scheme, config/local/xref_schemes/accounts.php (liberty's Local Scheme page applies it),
-// not part of a new install. See MANUAL.md for the row layout those items share.
+// The package carries the whole vocabulary a working install needs: the link from an account to its contact
+// record, the statement-line types for each account kind, OPENING / PLAN / BALANCE. A site's own additions
+// belong in a local scheme (config/local/xref_schemes/), not here. See MANUAL.md for the row layout.
 foreach( [ 'accountsaccount', 'accountspaypal', 'accountsrent' ] as $guid ) {
 	$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('general','$guid','General',1,3,'','')";
 
@@ -96,6 +94,37 @@ foreach( [ 'accountsaccount', 'accountsrent' ] as $guid ) {
 // starts from the newer of this and the last statement line, since statements only arrive monthly. Bank and rent accounts.
 foreach( [ 'accountsaccount', 'accountsrent' ] as $guid ) {
 	$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('BALANCE','$guid','planned','Balance noted',1,2,3,'','key-json-text','[\"amount\",\"note\"]')";
+}
+
+// Statement-line types. The item IS the line's type; the direction of money is the sign of xkey, never the type.
+// Bank lines use the bank's own Type column (business and personal accounts share it); the rent account (its own
+// type) has rent charged, housing benefit and the tenant's payments; PayPal (bank is master) holds only sales
+// and where that money went. Row layout (xkey = signed amount, xkey_ext = import key, xref = counterparty
+// contact, data json): MANUAL.md. Item codes are C(20).
+$hint = '["amount","import_key","code","description","balance","treatment","claim","source","note","gross","fee","net","status"]';
+foreach( [ 'accountsaccount', 'accountsrent', 'accountspaypal' ] as $guid ) {
+	$xrefTypes[] = "INSERT INTO `{$X}liberty_xref_group` (`x_group`,`content_type_guid`,`title`,`sort_order`,`role_id`,`type_href`,`template`) VALUES ('transactions','$guid','Transactions',2,3,'','')";
+}
+$lines = [
+	[ 'accountsaccount', 'DD',         'Direct debit',            1 ],
+	[ 'accountsaccount', 'BP',         'Bill payment',            2 ],
+	[ 'accountsaccount', 'CR',         'Credit',                  3 ],
+	[ 'accountsaccount', 'VIS',        'Visa debit purchase',     4 ],
+	[ 'accountsaccount', 'CTL',        'Contactless purchase',    5 ], // the bank's ')))'
+	[ 'accountsaccount', 'DR',         'Debit (bank charges)',    6 ],
+	[ 'accountsaccount', 'TFR',        'Transfer',                7 ],
+	[ 'accountsaccount', 'ATM',        'Cash withdrawal',         8 ],
+	[ 'accountsaccount', 'OBP',        'Open banking payment',    9 ], // e.g. a pay-later provider via the bank app
+	[ 'accountsaccount', 'BANK_OTHER', 'Other bank transaction', 10 ],
+	[ 'accountsrent',    'RENT',       'Rent charge',             1 ],
+	[ 'accountsrent',    'HB',         'Housing benefit',         2 ],
+	[ 'accountsrent',    'PAY',        'Payment towards rent',    3 ],
+	[ 'accountspaypal',  'PP_SALE',    'Sale received',           1 ],
+	[ 'accountspaypal',  'PP_PAYOUT',  'Paid out to bank',        2 ],
+	[ 'accountspaypal',  'PP_OTHER',   'Other PayPal transaction', 3 ],
+];
+foreach( $lines as [ $guid, $item, $title, $sort ] ) {
+	$xrefItems[] = "INSERT INTO `{$X}liberty_xref_item` (`item`,`content_type_guid`,`x_group`,`cross_ref_title`,`multiple`,`sort_order`,`role_id`,`cross_ref_href`,`template`,`data`) VALUES ('$item','$guid','transactions','$title',1,$sort,3,'','key-json-text','$hint')";
 }
 
 $gBitInstaller->registerSchemaDefault( ACCOUNTS_PKG_NAME, array_merge( $xrefTypes, $xrefItems ) );
